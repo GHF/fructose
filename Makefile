@@ -109,19 +109,21 @@ BOARDINC = ./boards/OP_REVOLUTION/
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CSRC = $(STARTUPSRC) \
-       $(KERNSRC) \
-       $(PORTSRC) \
-       $(OSALSRC) \
-       $(HALSRC) \
-       $(PLATFORMSRC) \
-       $(BOARDSRC) \
-       $(TESTSRC)
+CSRC = \
+    $(STARTUPSRC) \
+    $(KERNSRC) \
+    $(PORTSRC) \
+    $(OSALSRC) \
+    $(HALSRC) \
+    $(PLATFORMSRC) \
+    $(BOARDSRC) \
+    $(TESTSRC) \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
-CPPSRC = $(CHCPPSRC) \
-         main.cpp
+CPPSRC = \
+    $(CHCPPSRC) \
+    main.cpp \
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -147,10 +149,11 @@ TCPPSRC =
 ASMSRC =
 ASMXSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
-INCDIR = $(CHIBIOS)/os/license \
-         $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
-         $(HALINC) $(PLATFORMINC) $(BOARDINC) $(TESTINC) \
-         $(CHCPPINC) $(CHIBIOS)/os/various
+INCDIR = \
+    $(CHIBIOS)/os/license \
+    $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
+    $(HALINC) $(PLATFORMINC) $(BOARDINC) $(TESTINC) \
+    $(CHCPPINC) $(CHIBIOS)/os/various \
 
 #
 # Project, sources and paths
