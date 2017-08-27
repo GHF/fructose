@@ -6,6 +6,9 @@
 #include "ch.h"
 #include "hal.h"
 
+#include <cstdio>
+#include <version/version.h>
+
 static const ioline_t kHeartbeatLed = LINE_LED_STAT;
 static const ioline_t kWarningLed = LINE_LED_WARN;
 static SerialDriver * const kMainSerial = &SD1;
@@ -41,6 +44,8 @@ int main(void) {
   chThdCreateStatic(g_blink_wa, sizeof(g_blink_wa), LOWPRIO, Blink, nullptr);
 
   sdStart(kMainSerial, nullptr);
+  printf("\r\nBoard \"%s\" (%s built on %s)\n", BOARD_NAME, g_build_version,
+         g_build_time);
   chThdCreateStatic(g_echo_wa, sizeof(g_echo_wa), NORMALPRIO, Echo,
                     kMainSerial);
 
