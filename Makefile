@@ -99,6 +99,8 @@ include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
 # Other files (optional).
 include $(CHIBIOS)/test/rt/test.mk
 include $(CHIBIOS)/os/various/cpp_wrappers/chcpp.mk
+# Version variables.
+include ./version/version_vars.mk
 
 # Define linker script file here
 LDSCRIPT = $(STARTUPLD)/STM32F405xG.ld
@@ -118,6 +120,7 @@ CSRC = \
     $(PLATFORMSRC) \
     $(BOARDSRC) \
     $(TESTSRC) \
+    $(VERSIONSRC) \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -215,7 +218,8 @@ UINCDIR =
 ULIBDIR =
 
 # List all user libraries here
-ULIBS =
+ULIBS = \
+    $(VERSIONLIBS) \
 
 #
 # End of user defines
@@ -223,3 +227,6 @@ ULIBS =
 
 RULESPATH = $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC
 include $(RULESPATH)/rules.mk
+
+# Additional make rules.
+include $(VERSIONDIR)/version_rules.mk
