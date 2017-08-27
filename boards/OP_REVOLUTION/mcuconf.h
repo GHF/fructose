@@ -339,4 +339,13 @@
  */
 #define STM32_WDG_USE_IWDG                  FALSE
 
+#ifdef STDIN_SD
+#undef STDIN_SD
+#endif
+#define STDIN_SD                            SD1
+#ifdef STDOUT_SD
+#undef STDOUT_SD
+#endif
+#define STDOUT_SD                           SD1
+
 #endif /* MCUCONF_H */

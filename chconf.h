@@ -515,6 +515,11 @@
 /* Port-specific settings (override port settings defaulted in chcore.h).    */
 /*===========================================================================*/
 
+/* These definitions ensure that the HAL is included by C stubs. They should
+ * be redefined in a board-specific file. */
+#define STDIN_SD
+#define STDOUT_SD
+
 #endif  /* CHCONF_H */
 
 /** @} */
