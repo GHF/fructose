@@ -6,4 +6,7 @@
 // (C) Copyright 2014-2017 Xo Wang <xo@geekshavefeelings.com>
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef __cplusplus
+extern "C"
+#endif  // __cplusplus
 const char * const g_build_time = __DATE__ " " __TIME__;
