@@ -128,6 +128,7 @@ CSRC = \
 CPPSRC = \
     $(CHCPPSRC) \
     bus/chibios_spi.cpp \
+    driver/mpu6000.cpp \
     gpio/chibios_gpio.cpp \
     main.cpp \
 
