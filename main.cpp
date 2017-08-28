@@ -47,7 +47,7 @@ int main(void) {
   chThdCreateStatic(g_blink_wa, sizeof(g_blink_wa), LOWPRIO, Blink, nullptr);
 
   sdStart(kMainSerial, nullptr);
-  printf("\r\nBoard \"%s\" (%s built on %s)\n", BOARD_NAME, g_build_version,
+  printf("\r\nBoard \"%s\" (%s built on %s)\r\n", BOARD_NAME, g_build_version,
          g_build_time);
   chThdCreateStatic(g_echo_wa, sizeof(g_echo_wa), NORMALPRIO, Echo,
                     kMainSerial);
