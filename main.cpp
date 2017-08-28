@@ -7,10 +7,13 @@
 #include "hal.h"
 
 #include <cstdio>
-#include <version/version.h>
+#include "version/version.h"
+#include "gpio/gpio.h"
 
-static const ioline_t kHeartbeatLed = LINE_LED_STAT;
-static const ioline_t kWarningLed = LINE_LED_WARN;
+using namespace Fructose;
+
+static const GpioLine kHeartbeatLed = LINE_LED_STAT;
+static const GpioLine kWarningLed = LINE_LED_WARN;
 static SerialDriver * const kMainSerial = &SD1;
 
 static THD_WORKING_AREA(g_blink_wa, 128);
@@ -19,9 +22,9 @@ static THD_FUNCTION(Blink, arg) {
 
   chRegSetThreadName(__func__);
   while (true) {
-    palClearLine(kHeartbeatLed);
+    Gpio::Clear(kHeartbeatLed);
     osalThreadSleepMilliseconds(500);
-    palSetLine(kHeartbeatLed);
+    Gpio::Set(kHeartbeatLed);
     osalThreadSleepMilliseconds(500);
   }
 }
@@ -50,9 +53,9 @@ int main(void) {
                     kMainSerial);
 
   while (true) {
-    palClearLine(kWarningLed);
+    Gpio::Clear(kWarningLed);
     osalThreadSleepMilliseconds(100);
-    palSetLine(kWarningLed);
+    Gpio::Set(kWarningLed);
     osalThreadSleepMilliseconds(900);
   }
 
