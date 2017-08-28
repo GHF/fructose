@@ -57,15 +57,15 @@
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
-        Mode="Alternate"
-        Alternate="5" />
+        Resistor="Floating"
+        Mode="Output"
+        Alternate="0" />
       <pin5
         ID="MPU_SCK"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Alternate"
         Alternate="5" ></pin5>
       <pin6
@@ -73,7 +73,7 @@
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Alternate"
         Alternate="5" />
       <pin7
@@ -81,7 +81,7 @@
         Type="PushPull"
         Level="High"
         Speed="Maximum"
-        Resistor="PullUp"
+        Resistor="Floating"
         Mode="Alternate"
         Alternate="5" />
       <pin8

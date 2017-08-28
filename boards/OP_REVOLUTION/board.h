@@ -297,7 +297,7 @@
  * PA1  - SERVO_OUT_5               (alternate 1).
  * PA2  - SERVO_OUT_4               (alternate 1).
  * PA3  - SERVO_OUT_3               (alternate 1).
- * PA4  - MPU_CS                    (alternate 5).
+ * PA4  - MPU_CS                    (output pushpull maximum).
  * PA5  - MPU_SCK                   (alternate 5).
  * PA6  - MPU_MISO                  (alternate 5).
  * PA7  - MPU_MOSI                  (alternate 5).
@@ -314,7 +314,7 @@
                                      PIN_MODE_ALTERNATE(GPIOA_SERVO_OUT_5) |\
                                      PIN_MODE_ALTERNATE(GPIOA_SERVO_OUT_4) |\
                                      PIN_MODE_ALTERNATE(GPIOA_SERVO_OUT_3) |\
-                                     PIN_MODE_ALTERNATE(GPIOA_MPU_CS) |     \
+                                     PIN_MODE_OUTPUT(GPIOA_MPU_CS) |        \
                                      PIN_MODE_ALTERNATE(GPIOA_MPU_SCK) |    \
                                      PIN_MODE_ALTERNATE(GPIOA_MPU_MISO) |   \
                                      PIN_MODE_ALTERNATE(GPIOA_MPU_MOSI) |   \
@@ -362,10 +362,10 @@
                                      PIN_PUPDR_PULLDOWN(GPIOA_SERVO_OUT_5) |\
                                      PIN_PUPDR_PULLDOWN(GPIOA_SERVO_OUT_4) |\
                                      PIN_PUPDR_PULLDOWN(GPIOA_SERVO_OUT_3) |\
-                                     PIN_PUPDR_PULLUP(GPIOA_MPU_CS) |       \
-                                     PIN_PUPDR_PULLUP(GPIOA_MPU_SCK) |      \
-                                     PIN_PUPDR_PULLUP(GPIOA_MPU_MISO) |     \
-                                     PIN_PUPDR_PULLUP(GPIOA_MPU_MOSI) |     \
+                                     PIN_PUPDR_FLOATING(GPIOA_MPU_CS) |     \
+                                     PIN_PUPDR_FLOATING(GPIOA_MPU_SCK) |    \
+                                     PIN_PUPDR_FLOATING(GPIOA_MPU_MISO) |   \
+                                     PIN_PUPDR_FLOATING(GPIOA_MPU_MOSI) |   \
                                      PIN_PUPDR_PULLUP(GPIOA_SONAR) |        \
                                      PIN_PUPDR_PULLUP(GPIOA_UART1_TX) |     \
                                      PIN_PUPDR_PULLUP(GPIOA_UART1_RX) |     \
@@ -394,7 +394,7 @@
                                      PIN_AFIO_AF(GPIOA_SERVO_OUT_5, 1U) |   \
                                      PIN_AFIO_AF(GPIOA_SERVO_OUT_4, 1U) |   \
                                      PIN_AFIO_AF(GPIOA_SERVO_OUT_3, 1U) |   \
-                                     PIN_AFIO_AF(GPIOA_MPU_CS, 5U) |        \
+                                     PIN_AFIO_AF(GPIOA_MPU_CS, 0U) |        \
                                      PIN_AFIO_AF(GPIOA_MPU_SCK, 5U) |       \
                                      PIN_AFIO_AF(GPIOA_MPU_MISO, 5U) |      \
                                      PIN_AFIO_AF(GPIOA_MPU_MOSI, 5U))
