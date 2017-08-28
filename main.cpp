@@ -8,13 +8,20 @@
 
 #include <cstdio>
 #include "version/version.h"
+#include "driver/mpu6000.h"
 #include "gpio/gpio.h"
+#include "bus/chibios_spi.h"
 
 using namespace Fructose;
 
 static const GpioLine kHeartbeatLed = LINE_LED_STAT;
 static const GpioLine kWarningLed = LINE_LED_WARN;
 static SerialDriver * const kMainSerial = &SD1;
+static SPIDriver * const kMpuSpi = &SPID1;
+static const GpioLine kMpuSpiCs = LINE_MPU_CS;
+static constexpr SPIConfig kMpuSpiConfig = { nullptr, 0, 0,
+    // APB1/prescaler = 84 MHz / 128 = 656.25 kHz.
+    SPI_CR1_BR_2 | SPI_CR1_BR_1, 0 };
 
 static THD_WORKING_AREA(g_blink_wa, 128);
 static THD_FUNCTION(Blink, arg) {
@@ -51,6 +58,18 @@ int main(void) {
          g_build_time);
   chThdCreateStatic(g_echo_wa, sizeof(g_echo_wa), NORMALPRIO, Echo,
                     kMainSerial);
+
+  spiStart(kMpuSpi, &kMpuSpiConfig);
+  ChibiOsSpiMaster mpu_spi_master(kMpuSpi);
+  ChibiOsSpiSlave mpu_spi_slave(kMpuSpiCs);
+  Mpu6000 mpu6000(&mpu_spi_master, &mpu_spi_slave);
+  mpu_spi_master.Acquire();
+  mpu6000.WriteRegister(Mpu6000::PWR_MGMT_1, 0x80U);  // Reset device.
+  osalThreadSleepMilliseconds(10);
+  const uint8_t who_am_i = mpu6000.ReadRegister(Mpu6000::WHO_AM_I);
+  const uint8_t product_id = mpu6000.ReadRegister(Mpu6000::PRODUCT_ID);
+  printf("MPU WHO_AM_I = %#x, PRODUCT_ID = %#x\r\n", who_am_i, product_id);
+  mpu_spi_master.Release();
 
   while (true) {
     Gpio::Clear(kWarningLed);
