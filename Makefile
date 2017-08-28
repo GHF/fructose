@@ -127,6 +127,7 @@ CSRC = \
 # setting.
 CPPSRC = \
     $(CHCPPSRC) \
+    bus/chibios_spi.cpp \
     gpio/chibios_gpio.cpp \
     main.cpp \
 
