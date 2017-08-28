@@ -127,6 +127,7 @@ CSRC = \
 # setting.
 CPPSRC = \
     $(CHCPPSRC) \
+    gpio/chibios_gpio.cpp \
     main.cpp \
 
 # C sources to be compiled in ARM mode regardless of the global setting.
