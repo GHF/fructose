@@ -130,6 +130,7 @@ CPPSRC = \
     bus/chibios_spi.cpp \
     driver/mpu6000.cpp \
     gpio/chibios_gpio.cpp \
+    os/chibios_time.cpp \
     main.cpp \
 
 # C sources to be compiled in ARM mode regardless of the global setting.
