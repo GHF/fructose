@@ -12,9 +12,9 @@ namespace Fructose {
 namespace Gpio {
 
 // This must be large enough to fit the implementation's GPIO types.
-typedef uint32_t Line;
+using Line = uint32_t;
 // Mode is implementation-dependent.
-typedef uint32_t Mode;
+using Mode = uint32_t;
 
 bool Read(Line gpio);
 void Write(Line gpio, bool bit);
