@@ -14,7 +14,8 @@ Mpu6000::Mpu6000(SpiMaster *spi_master, SpiSlave *spi_slave)
 }
 
 void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {
-  const uint8_t tx_buffer[] = { address, data };
+  const uint8_t address_masked = address & ~kRegisterReadMask;
+  const uint8_t tx_buffer[] = { address_masked, data };
   spi_slave_->Select();
   spi_master_->Transfer(sizeof(tx_buffer), tx_buffer, nullptr);
   spi_slave_->Deselect();
