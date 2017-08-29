@@ -26,4 +26,22 @@ class SharedBusMaster : public BusMaster {
   }
 };
 
+// RAII manager for bus mutual exclusion. Construct to acquire the bus and
+// destroy (usually by leaving scope) to release.
+class BusGuard final {
+ public:
+  explicit BusGuard(BusMaster *bus_master)
+      : bus_master_(bus_master) {
+    bus_master_->Acquire();
+  }
+  ~BusGuard() {
+    bus_master_->Release();
+  }
+
+ private:
+  BusGuard(const BusGuard &) = delete;
+  BusGuard &operator=(const BusGuard &) = delete;
+  BusMaster * const bus_master_;
+};
+
 }  // namespace Fructose
