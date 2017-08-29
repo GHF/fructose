@@ -11,6 +11,7 @@
 #include "driver/mpu6000.h"
 #include "gpio/gpio.h"
 #include "bus/chibios_spi.h"
+#include "os/time.h"
 
 using namespace Fructose;
 
@@ -28,11 +29,11 @@ static THD_FUNCTION(Blink, arg) {
   (void) arg;
 
   chRegSetThreadName(__func__);
+  TimePoint time_point = TimePoint::Now();
   while (true) {
-    Gpio::Clear(kHeartbeatLed);
-    osalThreadSleepMilliseconds(500);
-    Gpio::Set(kHeartbeatLed);
-    osalThreadSleepMilliseconds(500);
+    Gpio::Toggle(kHeartbeatLed);
+    time_point = time_point.After(Duration::Milliseconds(500));
+    time_point.SleepUntil();
   }
 }
 
@@ -65,7 +66,7 @@ int main(void) {
   Mpu6000 mpu6000(&mpu_spi_master, &mpu_spi_slave);
   mpu_spi_master.Acquire();
   mpu6000.WriteRegister(Mpu6000::PWR_MGMT_1, 0x80U);  // Reset device.
-  osalThreadSleepMilliseconds(10);
+  Duration::Milliseconds(10).Sleep();
   const uint8_t who_am_i = mpu6000.ReadRegister(Mpu6000::WHO_AM_I);
   const uint8_t product_id = mpu6000.ReadRegister(Mpu6000::PRODUCT_ID);
   printf("MPU WHO_AM_I = %#x, PRODUCT_ID = %#x\r\n", who_am_i, product_id);
@@ -73,9 +74,9 @@ int main(void) {
 
   while (true) {
     Gpio::Clear(kWarningLed);
-    osalThreadSleepMilliseconds(100);
+    Duration::Milliseconds(100).Sleep();
     Gpio::Set(kWarningLed);
-    osalThreadSleepMilliseconds(900);
+    Duration::Milliseconds(900).Sleep();
   }
 
   return 0;
