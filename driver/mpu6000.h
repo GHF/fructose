@@ -16,7 +16,7 @@ class SpiSlave;
 
 class Mpu6000 {
  public:
-  enum MpuRegister {
+  enum MpuRegister : uint8_t {
     XG_OFFS_TC              = 0x00,
     YG_OFFS_TC              = 0x01,
     ZG_OFFS_TC              = 0x02,
