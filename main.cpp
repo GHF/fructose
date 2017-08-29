@@ -64,13 +64,8 @@ int main(void) {
   ChibiOsSpiMaster mpu_spi_master(kMpuSpi);
   ChibiOsSpiSlave mpu_spi_slave(kMpuSpiCs);
   Mpu6000 mpu6000(&mpu_spi_master, &mpu_spi_slave);
-  mpu_spi_master.Acquire();
-  mpu6000.WriteRegister(Mpu6000::PWR_MGMT_1, 0x80U);  // Reset device.
-  Duration::Milliseconds(10).Sleep();
-  const uint8_t who_am_i = mpu6000.ReadRegister(Mpu6000::WHO_AM_I);
-  const uint8_t product_id = mpu6000.ReadRegister(Mpu6000::PRODUCT_ID);
-  printf("MPU WHO_AM_I = %#x, PRODUCT_ID = %#x\r\n", who_am_i, product_id);
-  mpu_spi_master.Release();
+  printf("MPU-6000 detect: %u\r\n", mpu6000.Detect());
+  mpu6000.ResetDevice();
 
   while (true) {
     Gpio::Clear(kWarningLed);
