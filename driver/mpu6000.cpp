@@ -5,12 +5,53 @@
 
 #include "driver/mpu6000.h"
 #include "bus/spi.h"
+#include "os/time.h"
 
 namespace Fructose {
 
 Mpu6000::Mpu6000(SpiMaster *spi_master, SpiSlave *spi_slave)
     : spi_master_(spi_master),
       spi_slave_(spi_slave) {
+}
+
+bool Mpu6000::Detect() {
+  BusGuard bus_guard(spi_master_);
+  WriteRegister(PWR_MGMT_1, PWR_MGMT_1__DEVICE_RESET);
+  for (int attempt = 5; attempt >= 0; attempt--) {
+    Duration::Microseconds(500).Sleep();
+    const uint8_t who_am_i = ReadRegister(WHO_AM_I);
+    if (who_am_i == kWhoAmIMagic) {
+      break;
+    }
+    if (attempt == 0) {
+      return false;
+    }
+  }
+  const uint8_t product_id = ReadRegister(PRODUCT_ID);
+  switch (product_id) {
+    case MPU6000ES_REV_C4:
+    case MPU6000ES_REV_C5:
+    case MPU6000_REV_C4:
+    case MPU6000_REV_C5:
+    case MPU6000ES_REV_D6:
+    case MPU6000ES_REV_D7:
+    case MPU6000ES_REV_D8:
+    case MPU6000_REV_D6:
+    case MPU6000_REV_D7:
+    case MPU6000_REV_D8:
+    case MPU6000_REV_D9:
+    case MPU6000_REV_D10:
+      return true;
+  }
+  return false;
+}
+
+void Mpu6000::ResetDevice() {
+  BusGuard bus_guard(spi_master_);
+  WriteRegister(PWR_MGMT_1, PWR_MGMT_1__DEVICE_RESET);
+  Duration::Milliseconds(150).Sleep();
+  WriteRegister(USER_CTRL, USER_CTRL__SIG_COND_RESET);
+  Duration::Milliseconds(150).Sleep();
 }
 
 void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {

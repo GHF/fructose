@@ -110,10 +110,32 @@ class Mpu6000 {
     FIFO_R_W                = 0x74,
     WHO_AM_I                = 0x75,
   };
+  enum MpuRegisterMask : uint8_t {
+    PWR_MGMT_1__DEVICE_RESET            = 0x80,
+    USER_CTRL__SIG_COND_RESET           = 0x01,
+  };
+  enum MpuProductId : uint8_t {
+    MPU6000ES_REV_C4 = 0x14,
+    MPU6000ES_REV_C5 = 0x15,
+    MPU6000ES_REV_D6 = 0x16,
+    MPU6000ES_REV_D7 = 0x17,
+    MPU6000ES_REV_D8 = 0x18,
+    MPU6000_REV_C4   = 0x54,
+    MPU6000_REV_C5   = 0x55,
+    MPU6000_REV_D6   = 0x56,
+    MPU6000_REV_D7   = 0x57,
+    MPU6000_REV_D8   = 0x58,
+    MPU6000_REV_D9   = 0x59,
+    MPU6000_REV_D10  = 0x5A,
+  };
   // A set MSb in the first byte to device indicates a register read.
   static constexpr uint8_t kRegisterReadMask = 0x80U;
+  static constexpr uint8_t kWhoAmIMagic = 0x68U;
 
   Mpu6000(SpiMaster *spi_master, SpiSlave *spi_slave);
+  bool Detect();
+  void ResetDevice();
+
   void WriteRegister(uint8_t address, uint8_t data);
   void ReadRegister(uint8_t address, size_t n, uint8_t *rx_buffer);
   uint8_t ReadRegister(uint8_t address);
