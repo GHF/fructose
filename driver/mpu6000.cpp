@@ -49,9 +49,9 @@ bool Mpu6000::Detect() {
 void Mpu6000::ResetDevice() {
   BusGuard bus_guard(spi_master_);
   WriteRegister(PWR_MGMT_1, PWR_MGMT_1__DEVICE_RESET);
-  Duration::Milliseconds(150).Sleep();
+  Duration::Milliseconds(100).Sleep();
   WriteRegister(USER_CTRL, USER_CTRL__SIG_COND_RESET);
-  Duration::Milliseconds(150).Sleep();
+  Duration::Milliseconds(100).Sleep();
 }
 
 void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {
