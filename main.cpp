@@ -37,17 +37,6 @@ static THD_FUNCTION(Blink, arg) {
   }
 }
 
-static THD_WORKING_AREA(g_echo_wa, 256);
-static THD_FUNCTION(Echo, arg) {
-  SerialDriver * const serial_driver = static_cast<SerialDriver *>(arg);
-
-  chRegSetThreadName(__func__);
-  while (true) {
-    const char c = sdGet(serial_driver);
-    sdPut(serial_driver, c);
-  }
-}
-
 int main(void) {
   halInit();
   chSysInit();
@@ -57,8 +46,6 @@ int main(void) {
   sdStart(kMainSerial, nullptr);
   printf("\r\nBoard \"%s\" (%s built on %s)\r\n", BOARD_NAME, g_build_version,
          g_build_time);
-  chThdCreateStatic(g_echo_wa, sizeof(g_echo_wa), NORMALPRIO, Echo,
-                    kMainSerial);
 
   spiStart(kMpuSpi, &kMpuSpiConfig);
   ChibiOsSpiMaster mpu_spi_master(kMpuSpi);
