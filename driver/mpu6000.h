@@ -16,7 +16,7 @@ class SpiSlave;
 
 class Mpu6000 {
  public:
-  enum MpuRegister : uint8_t {
+  enum Register : uint8_t {
     XG_OFFS_TC              = 0x00,
     YG_OFFS_TC              = 0x01,
     ZG_OFFS_TC              = 0x02,
@@ -110,11 +110,19 @@ class Mpu6000 {
     FIFO_R_W                = 0x74,
     WHO_AM_I                = 0x75,
   };
-  enum MpuRegisterMask : uint8_t {
-    PWR_MGMT_1__DEVICE_RESET            = 0x80,
+  enum RegisterField : uint8_t {
+    CONFIG__DLPF_CFG                    = 0x07,
+    GYRO_CONFIG__FS_SEL                 = 0x18,
+    ACCEL_CONFIG__FS_SEL                = 0x18,
+    INT_PIN_CFG__INT_RD_CLEAR           = 0x10,
+    INT_ENABLE__DATA_RDY_EN             = 0x01,
     USER_CTRL__SIG_COND_RESET           = 0x01,
+    USER_CTRL__I2C_IF_DIS               = 0x10,
+    PWR_MGMT_1__CLKSEL                  = 0x07,
+    PWR_MGMT_1__CLKSEL__Z_GYRO          = 0x03,
+    PWR_MGMT_1__DEVICE_RESET            = 0x80,
   };
-  enum MpuProductId : uint8_t {
+  enum ProductId : uint8_t {
     MPU6000ES_REV_C4 = 0x14,
     MPU6000ES_REV_C5 = 0x15,
     MPU6000ES_REV_D6 = 0x16,
@@ -128,6 +136,28 @@ class Mpu6000 {
     MPU6000_REV_D9   = 0x59,
     MPU6000_REV_D10  = 0x5A,
   };
+  enum GyroLpf : uint8_t {
+    CONFIG__DLPF_CFG__256_HZ = 0x00,
+    CONFIG__DLPF_CFG__188_HZ = 0x01,
+    CONFIG__DLPF_CFG__98_HZ  = 0x02,
+    CONFIG__DLPF_CFG__42_HZ  = 0x03,
+    CONFIG__DLPF_CFG__21_HZ  = 0x04,
+    CONFIG__DLPF_CFG__10_HZ  = 0x05,
+    CONFIG__DLPF_CFG__5_HZ   = 0x06,
+    CONFIG__DLPF_CFG__NONE   = 0x07,
+  };
+  enum GyroFullScaleRange : uint8_t {
+    GYRO_CONFIG__FS_SEL__250_DPS  = 0x00,
+    GYRO_CONFIG__FS_SEL__500_DPS  = 0x08,
+    GYRO_CONFIG__FS_SEL__1000_DPS = 0x10,
+    GYRO_CONFIG__FS_SEL__2000_DPS = 0x18,
+  };
+  enum AccelFullScaleRange : uint8_t {
+    ACCEL_CONFIG__FS_SEL__2_G  = 0x00,
+    ACCEL_CONFIG__FS_SEL__4_G  = 0x08,
+    ACCEL_CONFIG__FS_SEL__8_G  = 0x10,
+    ACCEL_CONFIG__FS_SEL__16_G = 0x18,
+  };
   // A set MSb in the first byte to device indicates a register read.
   static constexpr uint8_t kRegisterReadMask = 0x80U;
   static constexpr uint8_t kWhoAmIMagic = 0x68U;
@@ -135,10 +165,18 @@ class Mpu6000 {
   Mpu6000(SpiMaster *spi_master, SpiSlave *spi_slave);
   bool Detect();
   void ResetDevice();
+  void SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
+                   AccelFullScaleRange accel_fsr, float desired_rate,
+                   float *actual_rate);
 
   void WriteRegister(uint8_t address, uint8_t data);
   void ReadRegister(uint8_t address, size_t n, uint8_t *rx_buffer);
   uint8_t ReadRegister(uint8_t address);
+
+  // Computes the 8-bit sample rate divisor for a filter configuration and
+  // desired sample rate.
+  static uint8_t ComputeDivider(GyroLpf gyro_lpf, float desired_rate,
+                                float *actual_rate);
 
  private:
   SpiMaster * const spi_master_;

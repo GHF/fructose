@@ -6,6 +6,9 @@
 #include "driver/mpu6000.h"
 #include "bus/spi.h"
 #include "os/time.h"
+#include "base/integer.h"
+
+#include <cmath>
 
 namespace Fructose {
 
@@ -54,6 +57,47 @@ void Mpu6000::ResetDevice() {
   Duration::Milliseconds(100).Sleep();
 }
 
+void Mpu6000::SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
+                          AccelFullScaleRange accel_fsr, float desired_rate,
+                          float *actual_rate) {
+  static const int kWriteDelayUs = 100;
+
+  BusGuard bus_guard(spi_master_);
+  // Change clock source to Z-axis gyro oscillator for stability.
+  WriteRegister(PWR_MGMT_1, PWR_MGMT_1__CLKSEL__Z_GYRO);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+
+  // Disable primary (host to MPU) I2C interface.
+  WriteRegister(USER_CTRL, USER_CTRL__I2C_IF_DIS);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+
+  // Set sample rate divider.
+  const uint8_t sample_rate_divider =
+      ComputeDivider(lpf_config, desired_rate, actual_rate);
+  WriteRegister(SMPLRT_DIV, sample_rate_divider);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+
+  // Set digital low-pass filter cutoff.
+  WriteRegister(CONFIG, lpf_config);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+
+  // Set gyro full scale range.
+  WriteRegister(GYRO_CONFIG, gyro_fsr);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+
+  // Set accel full scale range.
+  WriteRegister(ACCEL_CONFIG, accel_fsr);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+
+  // Any register read clears the interrupt status register.
+  WriteRegister(INT_PIN_CFG, INT_PIN_CFG__INT_RD_CLEAR);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+
+  // Enable interrupts on data ready.
+  WriteRegister(INT_ENABLE, INT_ENABLE__DATA_RDY_EN);
+  Duration::Microseconds(kWriteDelayUs).Sleep();
+}
+
 void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {
   const uint8_t address_masked = address & ~kRegisterReadMask;
   const uint8_t tx_buffer[] = { address_masked, data };
@@ -80,6 +124,22 @@ uint8_t Mpu6000::ReadRegister(uint8_t address) {
   spi_master_->Transfer(2, tx_buffer, rx_buffer);
   spi_slave_->Deselect();
   return rx_buffer[1];
+}
+
+uint8_t Mpu6000::ComputeDivider(GyroLpf gyro_lpf, float desired_rate,
+                                float *actual_rate) {
+  const float base_rate = gyro_lpf == CONFIG__DLPF_CFG__256_HZ ||
+                          gyro_lpf == CONFIG__DLPF_CFG__NONE ?
+                              8000.f : 1000.f;
+  long denominator;
+  if (desired_rate == 0.f) {
+    denominator = 256;
+  } else {
+    const float ratio = Clamp(base_rate / desired_rate, 1.f, 256.f);
+    denominator = lroundf(ratio);
+  }
+  *actual_rate = base_rate / denominator;
+  return denominator - 1;
 }
 
 }  // namespace Fructose
