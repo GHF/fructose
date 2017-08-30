@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include <cstddef>
-
 #include "bus/bus_master.h"
+
+#include <cstddef>
 
 namespace Fructose {
 

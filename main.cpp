@@ -6,12 +6,12 @@
 #include "ch.h"
 #include "hal.h"
 
-#include <cstdio>
 #include "version/version.h"
 #include "driver/mpu6000.h"
 #include "gpio/gpio.h"
 #include "bus/chibios_spi.h"
 #include "os/time.h"
+#include <cstdio>
 
 using namespace Fructose;
 
