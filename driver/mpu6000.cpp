@@ -192,7 +192,9 @@ uint8_t Mpu6000::ComputeDivider(GyroLpf gyro_lpf, float desired_rate,
     const float ratio = Clamp(base_rate / desired_rate, 1.f, 256.f);
     denominator = lroundf(ratio);
   }
-  *actual_rate = base_rate / denominator;
+  if (actual_rate != nullptr) {
+    *actual_rate = base_rate / denominator;
+  }
   return denominator - 1;
 }
 
