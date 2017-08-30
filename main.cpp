@@ -53,12 +53,20 @@ int main(void) {
   Mpu6000 mpu6000(&mpu_spi_master, &mpu_spi_slave);
   printf("MPU-6000 detect: %u\r\n", mpu6000.Detect());
   mpu6000.ResetDevice();
+  mpu6000.SetupDevice(Mpu6000::CONFIG__DLPF_CFG__5_HZ,
+                      Mpu6000::GYRO_CONFIG__FS_SEL__1000_DPS,
+                      Mpu6000::ACCEL_CONFIG__FS_SEL__8_G,
+                      100.f, nullptr);
 
   while (true) {
     Gpio::Clear(kWarningLed);
     Duration::Milliseconds(100).Sleep();
     Gpio::Set(kWarningLed);
     Duration::Milliseconds(900).Sleep();
+    float gyro[3];
+    float temp;
+    mpu6000.Read(&gyro, nullptr, &temp);
+    printf("%#g, %#g, %#g (%g C)\r\n", gyro[0], gyro[1], gyro[2], temp);
   }
 
   return 0;
