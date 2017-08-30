@@ -74,7 +74,8 @@ void Mpu6000::SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
   WriteRegister(USER_CTRL, USER_CTRL__I2C_IF_DIS);
   Duration::Microseconds(kWriteDelayUs).Sleep();
 
-  // Set sample rate divider.
+  // Set rate at which sensor data registers are updated, triggering data
+  // ready interrupts.
   const uint8_t sample_rate_divider =
       ComputeDivider(lpf_config, desired_rate, actual_rate);
   WriteRegister(SMPLRT_DIV, sample_rate_divider);
@@ -98,7 +99,7 @@ void Mpu6000::SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
   WriteRegister(INT_PIN_CFG, INT_PIN_CFG__INT_RD_CLEAR);
   Duration::Microseconds(kWriteDelayUs).Sleep();
 
-  // Enable interrupts on data ready.
+  // Enable pin interrupts on data ready.
   WriteRegister(INT_ENABLE, INT_ENABLE__DATA_RDY_EN);
   Duration::Microseconds(kWriteDelayUs).Sleep();
 }
