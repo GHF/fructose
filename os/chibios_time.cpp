@@ -4,7 +4,7 @@
 // (C) Copyright 2017 Xo Wang <xo@geekshavefeelings.com>
 // SPDX-License-Identifier: Apache-2.0
 
-#include "os/time.h"
+#include "os/chibios_time.h"
 
 #include "base/integer.h"
 
@@ -19,16 +19,6 @@ namespace Fructose {
 // scaling.
 static_assert(kTimeResolution == OSAL_ST_FREQUENCY,
               "ChibiOS time implementation must match tick frequency");
-
-static constexpr systime_t TicksFromTime(_TimeRepr time_point) {
-  return ScaleRoundUp(time_point, static_cast<systime_t>(OSAL_ST_FREQUENCY),
-                      kTimeResolution);
-}
-
-static constexpr _TimeRepr TimeFromTicks(systime_t ticks) {
-  return ScaleRoundUp(ticks, kTimeResolution,
-                      static_cast<systime_t>(OSAL_ST_FREQUENCY));
-}
 
 void TimePoint::SleepUntil() {
   const systime_t ticks = TicksFromTime(time_);

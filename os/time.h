@@ -111,7 +111,7 @@ class Duration {
     return Duration(kMaximum);
   }
 
- private:
+ protected:
   static constexpr _TimeRepr kImmediate = 0;
   static constexpr _TimeRepr kInfinite =
       std::numeric_limits<_TimeRepr>::max();
