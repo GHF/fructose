@@ -169,6 +169,10 @@ class Mpu6000 {
                    AccelFullScaleRange accel_fsr, float desired_rate,
                    float *actual_rate);
 
+  // Any of these can be null to be not read.
+  void ReadRaw(int16_t (*gyro)[3], int16_t (*accel)[3], int16_t *temp);
+  void Read(float (*gyro)[3], float (*accel)[3], float *temp);
+
   void WriteRegister(uint8_t address, uint8_t data);
   void ReadRegister(uint8_t address, size_t n, uint8_t *rx_buffer);
   uint8_t ReadRegister(uint8_t address);
@@ -178,9 +182,60 @@ class Mpu6000 {
   static uint8_t ComputeDivider(GyroLpf gyro_lpf, float desired_rate,
                                 float *actual_rate);
 
+  // Get a scaling factor that converts raw readings to rad/s.
+  static constexpr float ComputeGyroScale(GyroFullScaleRange gyro_fsr) {
+    const double kFullScaleLsb = 32768.0;
+    float dps_from_raw = 0.f;
+    switch (gyro_fsr) {
+      case GYRO_CONFIG__FS_SEL__250_DPS:
+        dps_from_raw = 250.0 / kFullScaleLsb;
+        break;
+      case GYRO_CONFIG__FS_SEL__500_DPS:
+        dps_from_raw = 500.0 / kFullScaleLsb;
+        break;
+      case GYRO_CONFIG__FS_SEL__1000_DPS:
+        dps_from_raw = 1000.0 / kFullScaleLsb;
+        break;
+      case GYRO_CONFIG__FS_SEL__2000_DPS:
+        dps_from_raw = 2000.0 / kFullScaleLsb;
+        break;
+    }
+    const float rad_from_deg = 3.14159265358979323846 / 180.0;
+    return rad_from_deg * dps_from_raw;
+  }
+
+  // Get a scaling factor that converts raw readings to rad/s.
+  static constexpr float ComputeAccelScale(AccelFullScaleRange accel_fsr) {
+    const double kFullScaleLsb = 32768.0;
+    float g_from_raw = 0.f;
+    switch (accel_fsr) {
+      case ACCEL_CONFIG__FS_SEL__2_G:
+        g_from_raw = 2.0 / kFullScaleLsb;
+        break;
+      case ACCEL_CONFIG__FS_SEL__4_G:
+        g_from_raw = 4.0 / kFullScaleLsb;
+        break;
+      case ACCEL_CONFIG__FS_SEL__8_G:
+        g_from_raw = 8.0 / kFullScaleLsb;
+        break;
+      case ACCEL_CONFIG__FS_SEL__16_G:
+        g_from_raw = 16.0 / kFullScaleLsb;
+        break;
+    }
+    const float m_s2_from_g = 9.80665;
+    return m_s2_from_g * g_from_raw;
+  }
+
+  // Returns in degress Celsius.
+  static constexpr float ConvertTempFromRaw(int16_t temp_raw) {
+    return temp_raw * static_cast<float>(1.0 / 340.0) + 36.53f;
+  }
+
  private:
   SpiMaster * const spi_master_;
   SpiSlave * const spi_slave_;
+  float gyro_scale_;  // rad/s per raw LSb
+  float accel_scale_;  // m/s^2 per raw LSb
 };
 
 }  // namespace Fructose

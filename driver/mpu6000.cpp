@@ -8,13 +8,16 @@
 #include "os/time.h"
 #include "base/integer.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace Fructose {
 
 Mpu6000::Mpu6000(SpiMaster *spi_master, SpiSlave *spi_slave)
     : spi_master_(spi_master),
-      spi_slave_(spi_slave) {
+      spi_slave_(spi_slave),
+      gyro_scale_(0.f),
+      accel_scale_(0.f) {
 }
 
 bool Mpu6000::Detect() {
@@ -83,10 +86,12 @@ void Mpu6000::SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
 
   // Set gyro full scale range.
   WriteRegister(GYRO_CONFIG, gyro_fsr);
+  gyro_scale_ = ComputeGyroScale(gyro_fsr);
   Duration::Microseconds(kWriteDelayUs).Sleep();
 
   // Set accel full scale range.
   WriteRegister(ACCEL_CONFIG, accel_fsr);
+  accel_scale_ = ComputeAccelScale(accel_fsr);
   Duration::Microseconds(kWriteDelayUs).Sleep();
 
   // Any register read clears the interrupt status register.
@@ -96,6 +101,55 @@ void Mpu6000::SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
   // Enable interrupts on data ready.
   WriteRegister(INT_ENABLE, INT_ENABLE__DATA_RDY_EN);
   Duration::Microseconds(kWriteDelayUs).Sleep();
+}
+
+void Mpu6000::ReadRaw(int16_t (*gyro_raw)[3], int16_t (*accel_raw)[3],
+                      int16_t *temp_raw) {
+  if (gyro_raw == nullptr && accel_raw == nullptr && temp_raw == nullptr) {
+    return;
+  }
+  BusGuard bus_guard(spi_master_);
+  if (accel_raw != nullptr) {
+    uint8_t data[6];
+    ReadRegister(ACCEL_XOUT_H, ArraySize(data), data);
+    (*accel_raw)[0] = data[0] << 8 | data[1];
+    (*accel_raw)[1] = data[2] << 8 | data[3];
+    (*accel_raw)[2] = data[4] << 8 | data[5];
+  }
+  if (temp_raw != nullptr) {
+    uint8_t data[2];
+    ReadRegister(TEMP_OUT_H, ArraySize(data), data);
+    *temp_raw = data[0] << 8 | data[1];
+  }
+  if (gyro_raw != nullptr) {
+    uint8_t data[6];
+    ReadRegister(GYRO_XOUT_H, ArraySize(data), data);
+    (*gyro_raw)[0] = data[0] << 8 | data[1];
+    (*gyro_raw)[1] = data[2] << 8 | data[3];
+    (*gyro_raw)[2] = data[4] << 8 | data[5];
+  }
+}
+
+void Mpu6000::Read(float (*gyro)[3], float (*accel)[3], float *temp) {
+  int16_t gyro_raw[3];
+  int16_t accel_raw[3];
+  int16_t temp_raw;
+  ReadRaw(gyro != nullptr ? &gyro_raw : nullptr,
+          accel != nullptr ? &accel_raw : nullptr,
+          temp != nullptr ? &temp_raw : nullptr);
+  if (gyro != nullptr) {
+    for (size_t i = 0; i < ArraySize(*gyro); i++) {
+      (*gyro)[i] = gyro_raw[i] * gyro_scale_;
+    }
+  }
+  if (accel != nullptr) {
+    for (size_t i = 0; i < ArraySize(*accel); i++) {
+      (*accel)[i] = accel_raw[i] * accel_scale_;
+    }
+  }
+  if (temp != nullptr) {
+    *temp = ConvertTempFromRaw(temp_raw);
+  }
 }
 
 void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {
