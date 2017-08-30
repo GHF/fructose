@@ -12,7 +12,7 @@ namespace Fructose {
 
 // Forward declarations.
 class SpiMaster;
-class SpiSlave;
+class SpiDevice;
 
 class Mpu6000 {
  public:
@@ -162,7 +162,7 @@ class Mpu6000 {
   static constexpr uint8_t kRegisterReadMask = 0x80U;
   static constexpr uint8_t kWhoAmIMagic = 0x68U;
 
-  Mpu6000(SpiMaster *spi_master, SpiSlave *spi_slave);
+  Mpu6000(SpiMaster *spi_master, SpiDevice *spi_slave);
   bool Detect();
   void ResetDevice();
   void SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
@@ -233,7 +233,7 @@ class Mpu6000 {
 
  private:
   SpiMaster * const spi_master_;
-  SpiSlave * const spi_slave_;
+  SpiDevice * const spi_device_;
   float gyro_scale_;  // rad/s per raw LSb
   float accel_scale_;  // m/s^2 per raw LSb
 };

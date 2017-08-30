@@ -6,7 +6,6 @@
 #pragma once
 
 #include "bus/bus_master.h"
-
 #include <cstddef>
 
 namespace Fructose {
@@ -18,9 +17,9 @@ class SpiMaster : public BusMaster {
   virtual void Transfer(size_t n, const void *tx_buffer, void *rx_buffer) = 0;
 };
 
-class SpiSlave {
+class SpiDevice {
  public:
-  virtual ~SpiSlave() {
+  virtual ~SpiDevice() {
   }
   virtual void Select() = 0;
   virtual void Deselect() = 0;

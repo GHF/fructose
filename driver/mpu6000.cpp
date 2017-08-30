@@ -13,9 +13,9 @@
 
 namespace Fructose {
 
-Mpu6000::Mpu6000(SpiMaster *spi_master, SpiSlave *spi_slave)
+Mpu6000::Mpu6000(SpiMaster *spi_master, SpiDevice *spi_device)
     : spi_master_(spi_master),
-      spi_slave_(spi_slave),
+      spi_device_(spi_device),
       gyro_scale_(0.f),
       accel_scale_(0.f) {
 }
@@ -156,17 +156,17 @@ void Mpu6000::Read(float (*gyro)[3], float (*accel)[3], float *temp) {
 void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {
   const uint8_t address_masked = address & ~kRegisterReadMask;
   const uint8_t tx_buffer[] = { address_masked, data };
-  spi_slave_->Select();
+  spi_device_->Select();
   spi_master_->Transfer(sizeof(tx_buffer), tx_buffer, nullptr);
-  spi_slave_->Deselect();
+  spi_device_->Deselect();
 }
 
 void Mpu6000::ReadRegister(uint8_t address, size_t n, uint8_t *rx_buffer) {
   const uint8_t address_masked = address | kRegisterReadMask;
-  spi_slave_->Select();
+  spi_device_->Select();
   spi_master_->Transfer(1, &address_masked, nullptr);
   spi_master_->Transfer(n, nullptr, rx_buffer);
-  spi_slave_->Deselect();
+  spi_device_->Deselect();
 }
 
 // Convenience function to read a single register. Uses only one SPI full-
@@ -175,9 +175,9 @@ uint8_t Mpu6000::ReadRegister(uint8_t address) {
   const uint8_t address_masked = address | kRegisterReadMask;
   const uint8_t tx_buffer[2] = { address_masked };  // Second byte is dummy.
   uint8_t rx_buffer[2];  // First byte is dummy.
-  spi_slave_->Select();
+  spi_device_->Select();
   spi_master_->Transfer(2, tx_buffer, rx_buffer);
-  spi_slave_->Deselect();
+  spi_device_->Deselect();
   return rx_buffer[1];
 }
 

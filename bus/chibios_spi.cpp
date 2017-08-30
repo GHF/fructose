@@ -34,15 +34,15 @@ void ChibiOsSpiMaster::Release() {
   spiReleaseBus(spi_driver_);
 }
 
-ChibiOsSpiSlave::ChibiOsSpiSlave(GpioLine select)
+ChibiOsSpiDevice::ChibiOsSpiDevice(GpioLine select)
     : select_(select) {
 }
 
-void ChibiOsSpiSlave::Select() {
+void ChibiOsSpiDevice::Select() {
   Gpio::Clear(select_);
 }
 
-void ChibiOsSpiSlave::Deselect() {
+void ChibiOsSpiDevice::Deselect() {
   Gpio::Set(select_);
 }
 

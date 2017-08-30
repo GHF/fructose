@@ -25,9 +25,9 @@ class ChibiOsSpiMaster : public SpiMaster {
   SPIDriver * const spi_driver_;
 };
 
-class ChibiOsSpiSlave : public SpiSlave {
+class ChibiOsSpiDevice : public SpiDevice {
  public:
-  explicit ChibiOsSpiSlave(GpioLine select);
+  explicit ChibiOsSpiDevice(GpioLine select);
   void Select() override;
   void Deselect() override;
 

@@ -49,8 +49,8 @@ int main(void) {
 
   spiStart(kMpuSpi, &kMpuSpiConfig);
   ChibiOsSpiMaster mpu_spi_master(kMpuSpi);
-  ChibiOsSpiSlave mpu_spi_slave(kMpuSpiCs);
-  Mpu6000 mpu6000(&mpu_spi_master, &mpu_spi_slave);
+  ChibiOsSpiDevice mpu_spi_device(kMpuSpiCs);
+  Mpu6000 mpu6000(&mpu_spi_master, &mpu_spi_device);
   printf("MPU-6000 detect: %u\r\n", mpu6000.Detect());
   mpu6000.ResetDevice();
   mpu6000.SetupDevice(Mpu6000::CONFIG__DLPF_CFG__5_HZ,
