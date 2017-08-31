@@ -7,8 +7,10 @@
 #include "hal.h"
 
 #include "version/version.h"
+#include "driver/mcp4725.h"
 #include "driver/mpu6000.h"
 #include "gpio/gpio.h"
+#include "bus/chibios_i2c.h"
 #include "bus/chibios_spi.h"
 #include "os/time.h"
 #include <cstdio>
@@ -23,6 +25,10 @@ static const GpioLine kMpuSpiCs = LINE_MPU_CS;
 static constexpr SPIConfig kMpuSpiConfig = { nullptr, 0, 0,
     // APB1/prescaler = 84 MHz / 128 = 656.25 kHz.
     SPI_CR1_BR_2 | SPI_CR1_BR_1, 0 };
+static I2CDriver * const kMcpI2c = &I2CD2;
+static constexpr I2CConfig kMcpI2cConfig = {
+    OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2
+};
 
 static THD_WORKING_AREA(g_blink_wa, 128);
 static THD_FUNCTION(Blink, arg) {
@@ -57,6 +63,11 @@ int main(void) {
                       Mpu6000::GYRO_CONFIG__FS_SEL__1000_DPS,
                       Mpu6000::ACCEL_CONFIG__FS_SEL__8_G,
                       100.f, nullptr);
+
+  i2cStart(kMcpI2c, &kMcpI2cConfig);
+  ChibiOsI2cMaster mcp_i2c_master(kMcpI2c);
+  Mcp4725 mcp4725(&mcp_i2c_master, Mcp4725::kAddressA0Clear);
+  mcp4725.Write(.5f, Duration::Milliseconds(250));
 
   while (true) {
     Gpio::Clear(kWarningLed);
