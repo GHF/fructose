@@ -150,13 +150,13 @@ constexpr T SignOf(T i) {
 // - deadband Distance from center of input range for which all input values
 //            are mapped to "zero" (center of the output range).
 template<typename T>
-constexpr int MapRange(T in_low, T in_high, T value, T out_low, T out_high,
-                       T deadband) {
+constexpr T MapRange(T in_low, T in_high, T value, T out_low, T out_high,
+                     T deadband) {
   static_assert(std::is_integral<T>() && std::is_signed<T>(),
                 "MapRange is valid only for signed integers.");
   // Center the input range on zero.
-  const int in_center = Average(in_low, in_high);
-  int centered_input = Clamp(value, in_low, in_high) - in_center;
+  const T in_center = Average(in_low, in_high);
+  T centered_input = Clamp(value, in_low, in_high) - in_center;
 
   // Cut away the deadband from the centered input.
   if (Nabs(centered_input) > -deadband) {
@@ -166,13 +166,13 @@ constexpr int MapRange(T in_low, T in_high, T value, T out_low, T out_high,
   }
 
   // Compute the length of input and output ranges.
-  const int in_scale = in_high - in_low - 2 * deadband;
-  const int out_scale = out_high - out_low;
-  const int out_center = Average(out_low, out_high);
+  const T in_scale = in_high - in_low - 2 * deadband;
+  const T out_scale = out_high - out_low;
+  const T out_center = Average(out_low, out_high);
 
   // Scale by output to input ratio, then shift from zero into range.
   // WARNING: this computation can easily overflow!
-  const int out_value = centered_input * out_scale / in_scale + out_center;
+  const T out_value = Scale(centered_input, out_scale, in_scale) + out_center;
 
   // Clamp output within range.
   return Clamp(out_value, out_low, out_high);
