@@ -155,7 +155,7 @@ void Mpu6000::Read(float (*gyro)[3], float (*accel)[3], float *temp) {
 
 void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {
   const uint8_t address_masked = address & ~kRegisterReadMask;
-  const uint8_t tx_buffer[] = { address_masked, data };
+  const uint8_t tx_buffer[] = {address_masked, data};
   spi_device_->Select();
   spi_master_->Transfer(sizeof(tx_buffer), tx_buffer, nullptr);
   spi_device_->Deselect();

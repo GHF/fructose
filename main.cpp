@@ -23,9 +23,9 @@ static const GpioLine kWarningLed = LINE_LED_WARN;
 static SerialDriver * const kMainSerial = &SD1;
 static SPIDriver * const kMpuSpi = &SPID1;
 static const GpioLine kMpuSpiCs = LINE_MPU_CS;
-static constexpr SPIConfig kMpuSpiConfig = { nullptr, 0, 0,
+static constexpr SPIConfig kMpuSpiConfig = {nullptr, 0, 0,
     // APB1/prescaler = 84 MHz / 128 = 656.25 kHz.
-    SPI_CR1_BR_2 | SPI_CR1_BR_1, 0 };
+    SPI_CR1_BR_2 | SPI_CR1_BR_1, 0};
 static I2CDriver * const kMcpI2c = &I2CD2;
 static constexpr I2CConfig kMcpI2cConfig = {
     OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2
