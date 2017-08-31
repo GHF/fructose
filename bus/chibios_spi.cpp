@@ -27,11 +27,15 @@ void ChibiOsSpiMaster::Transfer(size_t n, const void *tx_buffer,
 }
 
 void ChibiOsSpiMaster::Acquire() {
+#if SPI_USE_MUTUAL_EXCLUSION
   spiAcquireBus(spi_driver_);
+#endif  // SPI_USE_MUTUAL_EXCLUSION
 }
 
 void ChibiOsSpiMaster::Release() {
+#if SPI_USE_MUTUAL_EXCLUSION
   spiReleaseBus(spi_driver_);
+#endif  // SPI_USE_MUTUAL_EXCLUSION
 }
 
 ChibiOsSpiDevice::ChibiOsSpiDevice(GpioLine select)

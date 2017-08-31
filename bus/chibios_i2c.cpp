@@ -37,11 +37,15 @@ bool ChibiOsI2cMaster::Transfer(I2cAddress address,
 }
 
 void ChibiOsI2cMaster::Acquire() {
+#if I2C_USE_MUTUAL_EXCLUSION
   i2cAcquireBus(i2c_driver_);
+#endif  // I2C_USE_MUTUAL_EXCLUSION
 }
 
 void ChibiOsI2cMaster::Release() {
+#if I2C_USE_MUTUAL_EXCLUSION
   i2cReleaseBus(i2c_driver_);
+#endif  // I2C_USE_MUTUAL_EXCLUSION
 }
 
 }  // namespace Fructose
