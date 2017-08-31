@@ -129,6 +129,7 @@ CPPSRC = \
     $(CHCPPSRC) \
     bus/chibios_i2c.cpp \
     bus/chibios_spi.cpp \
+    driver/mcp4725.cpp \
     driver/mpu6000.cpp \
     gpio/chibios_gpio.cpp \
     os/chibios_time.cpp \
