@@ -31,7 +31,7 @@ void PpmInput::Start() {
                                              ICU_CHANNEL_1,
                                              0 };
   icu_driver_->self = this;
-  LogInfo("Configuring PPM input capture at %lu kHz...\r\n",
+  LogInfo("Configuring PPM input capture at %lu kHz...",
           kServoIcuConfig.frequency / 1000U);
   icuStart(icu_driver_, &kServoIcuConfig);
   // Full sample frequency, 8 sample filter
