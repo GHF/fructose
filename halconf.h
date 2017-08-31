@@ -383,6 +383,19 @@
 #define USB_USE_WAIT                FALSE
 #endif
 
+/*===========================================================================*/
+/* ICU driver related settings.                                              */
+/*===========================================================================*/
+
+/**
+ * @brief   ICU driver structure extension.
+ * @details User fields added to the @p ICUDriver structure.
+ */
+#if !defined(ICU_DRIVER_EXT_FIELDS) || defined(__DOXYGEN__)
+#define ICU_DRIVER_EXT_FIELDS                                               \
+  void *self;  /**<  Pointer to a user-defined class instance.               */
+#endif
+
 #endif /* HALCONF_H */
 
 /** @} */
