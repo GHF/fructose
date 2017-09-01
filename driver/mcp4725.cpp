@@ -29,7 +29,7 @@ bool Mcp4725::WriteRaw(uint16_t data, Duration timeout) {
 
 bool Mcp4725::Write(float value, Duration timeout) {
   const int scaled_value = ::lroundf(value * kFullScaleRange);
-  const uint16_t data = Clamp<int>(scaled_value, 0, kFullScaleRange);
+  const uint16_t data = Clamp<int>(scaled_value, 0, kFullScaleRange - 1);
   return WriteRaw(data, timeout);
 }
 
