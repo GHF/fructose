@@ -6,6 +6,7 @@
 #include "ch.h"
 #include "hal.h"
 
+#include "app/syrup.h"
 #include "app/log.h"
 #include "version/version.h"
 #include "driver/mcp4725.h"
@@ -18,30 +19,54 @@
 
 using namespace Fructose;
 
-static const GpioLine kHeartbeatLed = LINE_LED_STAT;
-static const GpioLine kWarningLed = LINE_LED_WARN;
 static SerialDriver * const kMainSerial = &SD1;
 static SPIDriver * const kMpuSpi = &SPID1;
 static const GpioLine kMpuSpiCs = LINE_MPU_CS;
-static constexpr SPIConfig kMpuSpiConfig = {nullptr, 0, 0,
+static constexpr SPIConfig kMpuSpiConfig = {
     // APB1/prescaler = 84 MHz / 128 = 656.25 kHz.
-    SPI_CR1_BR_2 | SPI_CR1_BR_1, 0};
+    nullptr, 0, 0, SPI_CR1_BR_2 | SPI_CR1_BR_1, 0
+};
 static I2CDriver * const kMcpI2c = &I2CD2;
 static constexpr I2CConfig kMcpI2cConfig = {
     OPMODE_I2C, 400000, FAST_DUTY_CYCLE_2
 };
+static ICUDriver * const kPpmIcu = &ICUD8;
+static const GpioLine kLedStatus = LINE_LED_STAT;
+static const GpioLine kLedWarning = LINE_LED_WARN;
+static PWMDriver * const kRcOutPwm = &PWMD3;
+static constexpr pwmchannel_t kClampOutChannel = 3;
+static constexpr pwmchannel_t kLiftOutChannel = 2;
+static constexpr PWMConfig kRcOutPwmConfig = {
+    1000000,
+    15000,
+    nullptr,
+    {{PWM_OUTPUT_DISABLED, nullptr},
+     {PWM_OUTPUT_DISABLED, nullptr},
+     {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
+     {PWM_OUTPUT_ACTIVE_HIGH, nullptr}},
+    0,
+#if STM32_PWM_USE_ADVANCED
+    0,
+#endif  // STM32_PWM_USE_ADVANCED
+    0
+};
+static const GpioLine kMotorEnGpio = LINE_SERVO_OUT_3;
+static const GpioLine kDirLeftGpio = LINE_SERVO_OUT_4;
+static const GpioLine kDirRightGpio = LINE_SERVO_OUT_5;
+static const GpioLine kVddSourceGpio = LINE_SERVO_OUT_6;
 
 static THD_WORKING_AREA(g_blink_wa, 128);
 static THD_FUNCTION(Blink, arg) {
-  (void) arg;
-
   chRegSetThreadName(__func__);
-  TimePoint time_point = TimePoint::Now();
-  while (true) {
-    Gpio::Toggle(kHeartbeatLed);
-    time_point = time_point.After(Duration::Milliseconds(500));
-    time_point.SleepUntil();
-  }
+  Syrup * const syrup = static_cast<Syrup *>(arg);
+  syrup->RunLed();
+}
+
+static THD_WORKING_AREA(g_gyro_wa, 1024);
+static THD_FUNCTION(Gyro, arg) {
+  chRegSetThreadName(__func__);
+  Syrup * const syrup = static_cast<Syrup *>(arg);
+  syrup->RunGyro();
 }
 
 static THD_WORKING_AREA(g_reset_watch_wa, 128);
@@ -78,41 +103,60 @@ int main(void) {
   halInit();
   chSysInit();
 
-  chThdCreateStatic(g_blink_wa, sizeof(g_blink_wa), LOWPRIO, Blink, nullptr);
-
   sdStart(kMainSerial, nullptr);
-  chThdCreateStatic(g_reset_watch_wa, sizeof(g_reset_watch_wa), HIGHPRIO,
-                    WatchForReset, nullptr);
   puts("");
   LogInfo("Board \"%s\" (%s built on %s)", BOARD_NAME,
           g_build_version, g_build_time);
+  chThdCreateStatic(g_reset_watch_wa, sizeof(g_reset_watch_wa), HIGHPRIO,
+                    WatchForReset, nullptr);
 
   spiStart(kMpuSpi, &kMpuSpiConfig);
   ChibiOsSpiMaster mpu_spi_master(kMpuSpi);
   ChibiOsSpiDevice mpu_spi_device(kMpuSpiCs);
-  Mpu6000 mpu6000(&mpu_spi_master, &mpu_spi_device);
-  LogDebug("MPU-6000 detect: %u", mpu6000.Detect());
-  mpu6000.ResetDevice();
-  mpu6000.SetupDevice(Mpu6000::CONFIG__DLPF_CFG__5_HZ,
-                      Mpu6000::GYRO_CONFIG__FS_SEL__1000_DPS,
-                      Mpu6000::ACCEL_CONFIG__FS_SEL__8_G,
-                      100.f, nullptr);
+  Mpu6000 mpu(&mpu_spi_master, &mpu_spi_device);
+  LogDebug("MPU-6000 detected: %s", mpu.Detect() ? "yes" : "no");
 
   i2cStart(kMcpI2c, &kMcpI2cConfig);
   ChibiOsI2cMaster mcp_i2c_master(kMcpI2c);
-  Mcp4725 mcp4725(&mcp_i2c_master, Mcp4725::kAddressA0Clear);
-  mcp4725.Write(.5f, Duration::Milliseconds(250));
+  Mcp4725 dac_0(&mcp_i2c_master, Mcp4725::kAddressA0Clear);
+  Mcp4725 dac_1(&mcp_i2c_master, Mcp4725::kAddressA0Set);
 
-  while (true) {
-    Gpio::Clear(kWarningLed);
-    Duration::Milliseconds(100).Sleep();
-    Gpio::Set(kWarningLed);
-    Duration::Milliseconds(900).Sleep();
-    float gyro[3];
-    float temp;
-    mpu6000.Read(&gyro, nullptr, &temp);
-    printf("%#g, %#g, %#g (%g C)\r\n", gyro[0], gyro[1], gyro[2], temp);
+  PpmInput ppm_input(kPpmIcu);
+  ppm_input.Start();
+
+  pwmStart(kRcOutPwm, &kRcOutPwmConfig);
+
+  // Override board settings because they're set for timer PWM output.
+  const Gpio::Line out_gpio_overrides[] = {
+      kMotorEnGpio, kDirLeftGpio, kDirRightGpio, kVddSourceGpio
+  };
+  for (const Gpio::Line line : out_gpio_overrides) {
+    Gpio::Clear(line);
+    Gpio::SetMode(line, PAL_STM32_MODE_OUTPUT | PAL_STM32_OTYPE_PUSHPULL |
+                        PAL_STM32_OSPEED_HIGHEST | PAL_STM32_PUPDR_PULLUP);
   }
+  Gpio::Set(kVddSourceGpio);
+
+  static const SyrupConfig syrup_config = {
+      &dac_0,
+      &dac_1,
+      kMotorEnGpio,
+      kDirLeftGpio,
+      kDirRightGpio,
+      &mpu,
+      &ppm_input,
+      kLedStatus,
+      kLedWarning,
+      kRcOutPwm,
+      kClampOutChannel,
+      kLiftOutChannel,
+      Duration::Microseconds(1500),
+  };
+  Syrup syrup(&syrup_config);
+  chThdCreateStatic(g_blink_wa, sizeof(g_blink_wa), LOWPRIO, Blink, &syrup);
+  syrup.Start();
+  chThdCreateStatic(g_gyro_wa, sizeof(g_gyro_wa), HIGHPRIO - 1, Gyro, &syrup);
+  syrup.RunMain();
 
   return 0;
 }

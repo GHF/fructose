@@ -128,6 +128,7 @@ CSRC = \
 # setting.
 CPPSRC = \
     $(CHCPPSRC) \
+    app/syrup.cpp \
     app/ppm_input.cpp \
     bus/chibios_i2c.cpp \
     bus/chibios_spi.cpp \
