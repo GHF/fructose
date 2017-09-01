@@ -24,16 +24,20 @@ bool ChibiOsI2cMaster::Transfer(I2cAddress address,
 
   const i2caddr_t address_driver = address;
   const systime_t timeout_ticks = TicksFromDuration(timeout);
+  msg_t status;
   if (tx_bytes == 0) {
-    const msg_t status =
-        i2cMasterReceiveTimeout(i2c_driver_, address_driver, rx_buffer,
-                                rx_bytes, timeout_ticks);
-    return status == MSG_OK;
+    status = i2cMasterReceiveTimeout(i2c_driver_, address_driver, rx_buffer,
+                                     rx_bytes, timeout_ticks);
+  } else {
+    status = i2cMasterTransmitTimeout(i2c_driver_, address_driver, tx_buffer,
+                                      tx_bytes, rx_buffer, rx_bytes,
+                                      timeout_ticks);
   }
-  const msg_t status =
-      i2cMasterTransmitTimeout(i2c_driver_, address_driver, tx_buffer,
-                               tx_bytes, rx_buffer, rx_bytes, timeout_ticks);
-  return status == MSG_OK;
+  if (status != MSG_OK) {
+    i2cStart(i2c_driver_, i2c_driver_->config);
+    return false;
+  }
+  return true;
 }
 
 void ChibiOsI2cMaster::Acquire() {
