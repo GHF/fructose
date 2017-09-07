@@ -101,13 +101,11 @@ include $(CHIBIOS)/test/rt/test.mk
 include $(CHIBIOS)/os/various/cpp_wrappers/chcpp.mk
 # Version variables.
 include ./version/version_vars.mk
+# Board files
+include ./boards/OP_REVOLUTION/board.mk
 
 # Define linker script file here
 LDSCRIPT = $(STARTUPLD)/STM32F405xG.ld
-
-# Board files
-BOARDSRC = ./boards/OP_REVOLUTION/board.c
-BOARDINC = ./boards/OP_REVOLUTION/
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
