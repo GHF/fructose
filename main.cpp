@@ -19,7 +19,7 @@
 
 using namespace Fructose;
 
-static SerialDriver * const kMainSerial = &SD1;
+static SerialDriver * const kDebugSerial = &SD4;
 static SPIDriver * const kMpuSpi = &SPID1;
 static const GpioLine kMpuSpiCs = LINE_MPU_CS;
 static constexpr SPIConfig kMpuSpiConfig = {
@@ -78,7 +78,7 @@ static THD_FUNCTION(WatchForReset, arg) {
   chRegSetThreadName(__func__);
   bool etx_received = false;
   while (true) {
-    const msg_t msg = chnGetTimeout(kMainSerial, MS2ST(500));
+    const msg_t msg = chnGetTimeout(kDebugSerial, MS2ST(500));
     if (msg == Q_TIMEOUT || msg == Q_RESET) {
       etx_received = false;
       continue;
@@ -94,7 +94,7 @@ static THD_FUNCTION(WatchForReset, arg) {
       etx_received = false;
     }
     // Echo character back.
-    sdPut(kMainSerial, c);
+    sdPut(kDebugSerial, c);
   }
   NVIC_SystemReset();
 }
@@ -103,7 +103,7 @@ int main(void) {
   halInit();
   chSysInit();
 
-  sdStart(kMainSerial, nullptr);
+  sdStart(kDebugSerial, nullptr);
   puts("");
   LogInfo("Board \"%s\" (%s built on %s)", BOARD_NAME,
           g_build_version, g_build_time);
