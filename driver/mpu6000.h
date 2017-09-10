@@ -200,8 +200,8 @@ class Mpu6000 {
         dps_from_raw = 2000.0 / kFullScaleLsb;
         break;
     }
-    const float rad_from_deg = 3.14159265358979323846 / 180.0;
-    return rad_from_deg * dps_from_raw;
+    const float kRadFromDeg = 3.14159265358979323846 / 180.0;
+    return kRadFromDeg * dps_from_raw;
   }
 
   // Get a scaling factor that converts raw readings to rad/s.
@@ -222,13 +222,14 @@ class Mpu6000 {
         g_from_raw = 16.0 / kFullScaleLsb;
         break;
     }
-    const float m_s2_from_g = 9.80665;
-    return m_s2_from_g * g_from_raw;
+    const float kMps2FromG = 9.80665f;
+    return kMps2FromG * g_from_raw;
   }
 
   // Returns in degress Celsius.
   static constexpr float ConvertTempFromRaw(int16_t temp_raw) {
-    return temp_raw * static_cast<float>(1.0 / 340.0) + 36.53f;
+    const float kDegCFromRaw = 1.0 / 340.0;
+    return temp_raw * kDegCFromRaw + 36.53f;
   }
 
  private:
