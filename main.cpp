@@ -75,12 +75,12 @@ static THD_WORKING_AREA(g_reset_watch_wa, 128);
 // Resets the system if two ^C characters are received in quick succession.
 // Also performs reception echo.
 static THD_FUNCTION(WatchForReset, arg) {
-  (void) arg;
+  SerialDriver * const serial = static_cast<SerialDriver *>(arg);
 
   chRegSetThreadName(__func__);
   bool etx_received = false;
   while (true) {
-    const msg_t msg = chnGetTimeout(kDebugSerial, MS2ST(500));
+    const msg_t msg = chnGetTimeout(serial, MS2ST(500));
     if (msg == Q_TIMEOUT || msg == Q_RESET) {
       etx_received = false;
       continue;
@@ -96,7 +96,7 @@ static THD_FUNCTION(WatchForReset, arg) {
       etx_received = false;
     }
     // Echo character back.
-    sdPut(kDebugSerial, c);
+    sdPut(serial, c);
   }
   NVIC_SystemReset();
 }
@@ -109,11 +109,11 @@ int main(void) {
   Gpio::SetMode(kDebugUartRxGpio, PAL_MODE_ALTERNATE(8) |
                                   PAL_STM32_PUPDR_PULLUP);
   sdStart(kDebugSerial, nullptr);
-  puts("");
+  puts("\r");
   LogInfo("Board \"%s\" (%s built on %s)", BOARD_NAME,
           g_build_version, g_build_time);
   chThdCreateStatic(g_reset_watch_wa, sizeof(g_reset_watch_wa), HIGHPRIO,
-                    WatchForReset, nullptr);
+                    WatchForReset, kDebugSerial);
 
   spiStart(kMpuSpi, &kMpuSpiConfig);
   ChibiOsSpiMaster mpu_spi_master(kMpuSpi);
