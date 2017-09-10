@@ -152,7 +152,7 @@ bool Syrup::WriteMotor(MotorChannel motor_channel, float command,
   const bool status = dac_motors_[motor_channel]->Write(abs_command, timeout);
   Fructose::Gpio::Write(dir_gpios_[motor_channel], direction);
   if (!status) {
-    LogError("failed writing DAC %d", motor_channel);
+    LogDebug("failed writing DAC %d", motor_channel);
   }
   return status;
 }
