@@ -247,7 +247,7 @@
         Mode="Alternate"
         Alternate="4" />
       <pin12
-        ID=""
+        ID="INPUT_PIN_3"
         Type="PushPull"
         Level="High"
         Speed="Maximum"
@@ -255,7 +255,7 @@
         Mode="Input"
         Alternate="0" />
       <pin13
-        ID=""
+        ID="INPUT_PIN_4"
         Type="PushPull"
         Level="High"
         Speed="Maximum"

@@ -87,8 +87,8 @@
 #define GPIOB_MAG_BAR_SDA           9U
 #define GPIOB_FLEXI_SCL             10U
 #define GPIOB_FLEXI_SDA             11U
-#define GPIOB_PIN12                 12U
-#define GPIOB_PIN13                 13U
+#define GPIOB_INPUT_PIN_3           12U
+#define GPIOB_INPUT_PIN_4           13U
 #define GPIOB_SERVO_IN_1            14U
 #define GPIOB_SERVO_IN_2            15U
 
@@ -242,6 +242,8 @@
 #define LINE_MAG_BAR_SDA            PAL_LINE(GPIOB, 9U)
 #define LINE_FLEXI_SCL              PAL_LINE(GPIOB, 10U)
 #define LINE_FLEXI_SDA              PAL_LINE(GPIOB, 11U)
+#define LINE_INPUT_PIN_3            PAL_LINE(GPIOB, 12U)
+#define LINE_INPUT_PIN_4            PAL_LINE(GPIOB, 13U)
 #define LINE_SERVO_IN_1             PAL_LINE(GPIOB, 14U)
 #define LINE_SERVO_IN_2             PAL_LINE(GPIOB, 15U)
 
@@ -422,8 +424,8 @@
  * PB9  - MAG_BAR_SDA               (alternate 4).
  * PB10 - FLEXI_SCL                 (alternate 4).
  * PB11 - FLEXI_SDA                 (alternate 4).
- * PB12 - PIN12                     (input pullup).
- * PB13 - PIN13                     (input pullup).
+ * PB12 - INPUT_PIN_3               (input pullup).
+ * PB13 - INPUT_PIN_4               (input pullup).
  * PB14 - SERVO_IN_1                (alternate 9).
  * PB15 - SERVO_IN_2                (alternate 9).
  */
@@ -439,8 +441,8 @@
                                      PIN_MODE_ALTERNATE(GPIOB_MAG_BAR_SDA) |\
                                      PIN_MODE_ALTERNATE(GPIOB_FLEXI_SCL) |  \
                                      PIN_MODE_ALTERNATE(GPIOB_FLEXI_SDA) |  \
-                                     PIN_MODE_INPUT(GPIOB_PIN12) |          \
-                                     PIN_MODE_INPUT(GPIOB_PIN13) |          \
+                                     PIN_MODE_INPUT(GPIOB_INPUT_PIN_3) |    \
+                                     PIN_MODE_INPUT(GPIOB_INPUT_PIN_4) |    \
                                      PIN_MODE_ALTERNATE(GPIOB_SERVO_IN_1) | \
                                      PIN_MODE_ALTERNATE(GPIOB_SERVO_IN_2))
 #define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_SERVO_OUT_1) |\
@@ -455,8 +457,8 @@
                                      PIN_OTYPE_OPENDRAIN(GPIOB_MAG_BAR_SDA) |\
                                      PIN_OTYPE_OPENDRAIN(GPIOB_FLEXI_SCL) | \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_FLEXI_SDA) | \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN12) |      \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN13) |      \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_INPUT_PIN_3) |\
+                                     PIN_OTYPE_PUSHPULL(GPIOB_INPUT_PIN_4) |\
                                      PIN_OTYPE_PUSHPULL(GPIOB_SERVO_IN_1) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_SERVO_IN_2))
 #define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_HIGH(GPIOB_SERVO_OUT_1) |   \
@@ -471,8 +473,8 @@
                                      PIN_OSPEED_HIGH(GPIOB_MAG_BAR_SDA) |   \
                                      PIN_OSPEED_HIGH(GPIOB_FLEXI_SCL) |     \
                                      PIN_OSPEED_HIGH(GPIOB_FLEXI_SDA) |     \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN12) |         \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN13) |         \
+                                     PIN_OSPEED_HIGH(GPIOB_INPUT_PIN_3) |   \
+                                     PIN_OSPEED_HIGH(GPIOB_INPUT_PIN_4) |   \
                                      PIN_OSPEED_HIGH(GPIOB_SERVO_IN_1) |    \
                                      PIN_OSPEED_HIGH(GPIOB_SERVO_IN_2))
 #define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLDOWN(GPIOB_SERVO_OUT_1) |\
@@ -487,8 +489,8 @@
                                      PIN_PUPDR_PULLUP(GPIOB_MAG_BAR_SDA) |  \
                                      PIN_PUPDR_PULLUP(GPIOB_FLEXI_SCL) |    \
                                      PIN_PUPDR_PULLUP(GPIOB_FLEXI_SDA) |    \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN12) |        \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN13) |        \
+                                     PIN_PUPDR_PULLUP(GPIOB_INPUT_PIN_3) |  \
+                                     PIN_PUPDR_PULLUP(GPIOB_INPUT_PIN_4) |  \
                                      PIN_PUPDR_PULLDOWN(GPIOB_SERVO_IN_1) | \
                                      PIN_PUPDR_PULLDOWN(GPIOB_SERVO_IN_2))
 #define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_SERVO_OUT_1) |      \
@@ -503,8 +505,8 @@
                                      PIN_ODR_HIGH(GPIOB_MAG_BAR_SDA) |      \
                                      PIN_ODR_HIGH(GPIOB_FLEXI_SCL) |        \
                                      PIN_ODR_HIGH(GPIOB_FLEXI_SDA) |        \
-                                     PIN_ODR_HIGH(GPIOB_PIN12) |            \
-                                     PIN_ODR_HIGH(GPIOB_PIN13) |            \
+                                     PIN_ODR_HIGH(GPIOB_INPUT_PIN_3) |      \
+                                     PIN_ODR_HIGH(GPIOB_INPUT_PIN_4) |      \
                                      PIN_ODR_HIGH(GPIOB_SERVO_IN_1) |       \
                                      PIN_ODR_HIGH(GPIOB_SERVO_IN_2))
 #define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_SERVO_OUT_1, 2U) |   \
@@ -519,8 +521,8 @@
                                      PIN_AFIO_AF(GPIOB_MAG_BAR_SDA, 4U) |   \
                                      PIN_AFIO_AF(GPIOB_FLEXI_SCL, 4U) |     \
                                      PIN_AFIO_AF(GPIOB_FLEXI_SDA, 4U) |     \
-                                     PIN_AFIO_AF(GPIOB_PIN12, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN13, 0U) |         \
+                                     PIN_AFIO_AF(GPIOB_INPUT_PIN_3, 0U) |   \
+                                     PIN_AFIO_AF(GPIOB_INPUT_PIN_4, 0U) |   \
                                      PIN_AFIO_AF(GPIOB_SERVO_IN_1, 9U) |    \
                                      PIN_AFIO_AF(GPIOB_SERVO_IN_2, 9U))
 
