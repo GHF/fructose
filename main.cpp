@@ -52,8 +52,10 @@ static constexpr PWMConfig kRcOutPwmConfig = {
 };
 static const GpioLine kMotorEnGpio = LINE_SERVO_OUT_3;
 static const GpioLine kDirLeftGpio = LINE_SERVO_OUT_4;
-static const GpioLine kDirRightGpio = LINE_SERVO_OUT_5;
-static const GpioLine kVddSourceGpio = LINE_SERVO_OUT_6;
+static const GpioLine kDirRightGpio = LINE_INPUT_PIN_3;
+static const GpioLine kVddSourceGpio = LINE_INPUT_PIN_4;
+static const GpioLine kDebugUartTxGpio = LINE_SERVO_OUT_6;
+static const GpioLine kDebugUartRxGpio = LINE_SERVO_OUT_5;
 
 static THD_WORKING_AREA(g_blink_wa, 128);
 static THD_FUNCTION(Blink, arg) {
@@ -103,6 +105,9 @@ int main(void) {
   halInit();
   chSysInit();
 
+  Gpio::SetMode(kDebugUartTxGpio, PAL_MODE_ALTERNATE(8));
+  Gpio::SetMode(kDebugUartRxGpio, PAL_MODE_ALTERNATE(8) |
+                                  PAL_STM32_PUPDR_PULLUP);
   sdStart(kDebugSerial, nullptr);
   puts("");
   LogInfo("Board \"%s\" (%s built on %s)", BOARD_NAME,
@@ -127,10 +132,10 @@ int main(void) {
   pwmStart(kRcOutPwm, &kRcOutPwmConfig);
 
   // Override board settings because they're set for timer PWM output.
-  const Gpio::Line out_gpio_overrides[] = {
+  const GpioLine out_gpio_overrides[] = {
       kMotorEnGpio, kDirLeftGpio, kDirRightGpio, kVddSourceGpio
   };
-  for (const Gpio::Line line : out_gpio_overrides) {
+  for (const GpioLine line : out_gpio_overrides) {
     Gpio::Clear(line);
     Gpio::SetMode(line, PAL_STM32_MODE_OUTPUT | PAL_STM32_OTYPE_PUSHPULL |
                         PAL_STM32_OSPEED_HIGHEST | PAL_STM32_PUPDR_PULLUP);
