@@ -1,0 +1,56 @@
+#!/bin/sh
+set -o errexit -o pipefail -o noclobber -o nounset
+set -x
+
+OPTIND=1
+
+build_config=
+sanitizer=
+
+while getopts "h?c:s:" opt; do
+  case "$opt" in
+    c)
+      build_config=$OPTARG
+      ;;
+    s)
+      sanitizer=$OPTARG
+      ;;
+  esac
+done
+
+if [[ ! "$build_config" =~ ^(Debug|Release|RelWithDebInfo|MinSizeRel|)$ ]]; then
+    echo "Unknown build type ${build_config}"
+fi
+
+if [[ ! -z ${sanitizer} ]]; then
+  case "${sanitizer}" in
+    asan)
+      sanitizer_def=ADDRESS
+      ;;
+    msan)
+      sanitizer_def=MEMORY
+      ;;
+    tsan)
+      sanitizer_def=THREAD
+      ;;
+    ubsan)
+      sanitizer_def=UNDEFINED
+      ;;
+    *)
+      echo "Unknown sanitizer type ${sanitizer}"
+      exit 0
+      ;;
+  esac
+fi
+
+build_dir=out/${build_config:-Default}${sanitizer:+-}${sanitizer}
+cmake_type="${build_config:+-DCMAKE_BUILD_TYPE=${build_config}}"
+cmake_sanitizer="${sanitizer:+-DSANITIZE_${sanitizer_def}=On}"
+cmake_options="-GNinja ${cmake_type} ${cmake_sanitizer}"
+
+if [[ ! -d ${build_dir} ]]; then
+  mkdir -p ${build_dir}
+fi
+
+cd ${build_dir}
+cmake ${cmake_options} ../..
