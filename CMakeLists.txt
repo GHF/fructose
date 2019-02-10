@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(MyProject CXX)
+project(Fructose CXX)
 enable_testing()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -19,25 +19,25 @@ if(NOT COMMAND add_sanitizers)
 endif()
 
 # Define an umbrella target for all subdirectories to add library sources to
-add_library(MyLibrary OBJECT)
-add_library(MyProject::MyLibrary ALIAS MyLibrary)
-target_include_directories(MyLibrary
+add_library(fructose OBJECT)
+add_library(Fructose::fructose ALIAS fructose)
+target_include_directories(fructose
   PUBLIC
     ${PROJECT_SOURCE_DIR}
 )
-add_sanitizers(MyLibrary)
 
 # Define an umbrella target for all subdirectories to add test sources to
-add_executable(MyTest)
-add_test(NAME MyTest COMMAND MyTest)
-target_link_libraries(MyTest
+add_executable(fructose-unittest)
+add_test(NAME fructose-unittest COMMAND fructose-unittest)
+target_link_libraries(fructose-unittest
   PRIVATE
-    MyProject::MyLibrary
     Catch2::Catch2
+    Fructose::catch2-main
+    Fructose::fructose
 )
-add_sanitizers(MyTest)
+add_sanitizers(fructose-unittest)
 add_subdirectory(third_party/Catch2)
 add_subdirectory(testing)
 
 # List all subdirectories containing sources
-add_subdirectory(hello)
+add_subdirectory(base)
