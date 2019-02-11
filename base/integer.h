@@ -9,6 +9,19 @@
 #include <type_traits>
 
 namespace Fructose {
+namespace internal {
+
+// Recursively reduces rank of the array type until Rank = 0U, which returns
+// the current dimension's bound, or the array type runs out of dimensions,
+// causing the primary template's incomplete struct's instantiation failure.
+template<typename ArrayT, unsigned Rank>
+struct ArraySizeDeducer;
+template<typename T, size_t N>
+struct ArraySizeDeducer<T[N], 0U> : std::integral_constant<size_t, N> {};
+template<typename T, size_t N, unsigned Rank>
+struct ArraySizeDeducer<T[N], Rank> : ArraySizeDeducer<T, Rank - 1> {};
+
+}  // namespace internal
 
 // Gets the number of elements in any array that has a defined size. Unlike
 // sizeof(array) / sizeof(array[0]), this will fail to compile if used with a
@@ -20,20 +33,11 @@ constexpr size_t ArraySize(const T (&)[N]) {
   return N;
 }
 
-// Recursively reduces rank of the array type until Rank = 0U, which returns
-// the current dimension's bound, or the array type runs out of dimensions,
-// causing the primary template's incomplete struct's instantiation failure.
-template<typename T, unsigned Rank>
-struct ArraySizeDeducer;  // Intentionally incomplete primary template.
-template<typename T, size_t N>
-struct ArraySizeDeducer<T[N], 0U> : std::integral_constant<size_t, N> {};
-template<typename T, size_t N, unsigned Rank>
-struct ArraySizeDeducer<T[N], Rank> : ArraySizeDeducer<T, Rank - 1> {};
 // Given a Rank template parameter, return the array type's Rankth (from the
 // left) dimension bound.
 template<unsigned Rank, typename T, size_t N>
 constexpr size_t ArraySize(const T (&)[N]) {
-  return ArraySizeDeducer<T[N], Rank>();
+  return ::Fructose::internal::ArraySizeDeducer<T[N], Rank>();
 }
 
 // Division that rounds the quotient up to the next integer.
