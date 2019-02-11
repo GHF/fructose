@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <limits>
+#include <ratio>
 
 #include "catch2/catch.hpp"
 
@@ -95,6 +96,63 @@ TEST_CASE("Divide mixed types", "[base][base/integer]") {
   CHECK(0x10000 == DivideRoundUp(0x20000, static_cast<int16_t>(2)));
   CHECK(-32769 == DivideRoundUp(-32769, static_cast<int16_t>(1)));
   CHECK(65536U == DivideRoundUp(0x20000U, static_cast<uint16_t>(2)));
+}
+
+TEST_CASE("Scale value by a ratio", "[base][base/integer]") {
+  constexpr int A = 3, B = 1000;
+
+  CHECK(0 == Scale(0, A, B));
+  CHECK(0 == ScaleRoundUp(0, A, B));
+  CHECK(0 == Scale(0, B, A));
+  CHECK(0 == ScaleRoundUp(0, B, A));
+  CHECK(0 == Scale(0, A, A));
+  CHECK(0 == ScaleRoundUp(0, A, A));
+
+  CHECK(0 == Scale(1, A, B));
+  CHECK(1 == ScaleRoundUp(1, A, B));
+  CHECK(333 == Scale(1, B, A));
+  CHECK(334 == ScaleRoundUp(1, B, A));
+  CHECK(1 == Scale(1, A, A));
+  CHECK(1 == ScaleRoundUp(1, A, A));
+
+  CHECK(0 == Scale(2, A, B));
+  CHECK(1 == ScaleRoundUp(2, A, B));
+  CHECK(666 == Scale(2, B, A));
+  CHECK(667 == ScaleRoundUp(2, B, A));
+  CHECK(2 == Scale(2, A, A));
+  CHECK(2 == ScaleRoundUp(2, A, A));
+
+  CHECK(0 == Scale(-1, A, B));
+  CHECK(-1 == ScaleRoundUp(-1, A, B));
+  CHECK(-333 == Scale(-1, B, A));
+  CHECK(-334 == ScaleRoundUp(-1, B, A));
+  CHECK(-1 == Scale(-1, A, A));
+  CHECK(-1 == ScaleRoundUp(-1, A, A));
+
+  CHECK(0 == Scale(-2, A, B));
+  CHECK(-1 == ScaleRoundUp(-2, A, B));
+  CHECK(-666 == Scale(-2, B, A));
+  CHECK(-667 == ScaleRoundUp(-2, B, A));
+  CHECK(-2 == Scale(-2, A, A));
+  CHECK(-2 == ScaleRoundUp(-2, A, A));
+}
+
+TEST_CASE("Scaling doesn't overflow naively", "[base][base/integer]") {
+  // 182 * 181 would overflow past std::numeric_limits<int16_t>::max()
+  CHECK(4117 == Scale(static_cast<int16_t>(182), static_cast<int16_t>(181),
+                      static_cast<int16_t>(8)));
+  CHECK(-4117 == Scale(static_cast<int16_t>(-182), static_cast<int16_t>(181),
+                       static_cast<int16_t>(8)));
+  CHECK(4118 == ScaleRoundUp(static_cast<int16_t>(182),
+                             static_cast<int16_t>(181),
+                             static_cast<int16_t>(8)));
+  CHECK(-4118 == ScaleRoundUp(static_cast<int16_t>(-182),
+                              static_cast<int16_t>(181),
+                              static_cast<int16_t>(8)));
+
+  // 182 % 10000 * 300 overflows, but not if the ratio is simplified
+  CHECK(5 == Scale<std::ratio<300, 10000>>(static_cast<int16_t>(182)));
+  CHECK(6 == ScaleRoundUp<std::ratio<300, 10000>>(static_cast<int16_t>(182)));
 }
 
 }  // namespace

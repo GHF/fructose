@@ -10,6 +10,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-Wall -Wextra -pedantic)
+add_compile_options(-fwrapv)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # TODO(xw): Maybe create add_library/add_executable macro overrides

@@ -33,7 +33,7 @@ constexpr size_t ArraySize(const T (&)[N]) {
   return N;
 }
 
-// Given a Rank template parameter, return the array type's Rankth (from the
+// Given a Rank template parameter, returns the array type's Rankth (from the
 // left) dimension bound.
 template <unsigned Rank, typename T, size_t N>
 constexpr size_t ArraySize(const T (&)[N]) {
@@ -47,7 +47,7 @@ constexpr T SignOf(T i) {
   return (i > 0) - (i < 0);
 }
 
-// Division that rounds the quotient away from zero.
+// Divides, rounding the quotient away from zero.
 template <typename N, typename D>
 constexpr auto DivideRoundUp(N numerator, D denominator) {
   static_assert(std::is_integral_v<N> && std::is_integral_v<D>,
@@ -70,11 +70,9 @@ constexpr auto DivideRoundUp(N numerator, D denominator) {
   return numerator / denominator + SignOf<ResultT>(numerator % denominator);
 }
 
-// Multiply a value against a ratio while maintaining precision and avoiding
-// unnecessary overflow. It's still possible for intermediate values of
-// remainder * numerator to overflow if numerator is greater than the sqrt of
-// the arithmetic type's range. Simplifying the fraction numerator /
-// denominator gives the best results.
+// Multiplies a value against a ratio while maintaining precision and avoiding
+// unnecessary overflow. It's still possible for |x % denominator * numerator|
+// to overflow.
 template <typename T, typename N, typename D>
 constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
   static_assert(
@@ -92,7 +90,13 @@ constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
   return quotient * numerator + remainder * numerator / denominator;
 }
 
-// Same as Scale, but round results up to the next denominator boundary.
+// Scales a value against a std::ratio known at compile time.
+template <class Ratio, typename T>
+constexpr T Scale(T x) {
+  return Scale(x, static_cast<T>(Ratio::num), static_cast<T>(Ratio::den));
+}
+
+// Same as Scale, but rounds results up to the next denominator boundary.
 template <typename T, typename N, typename D>
 constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x,
                                                    N numerator,
@@ -111,6 +115,12 @@ constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x,
   const auto remainder = x % denominator;
   return quotient * numerator +
          DivideRoundUp(remainder * numerator, denominator);
+}
+
+template <class Ratio, typename T>
+constexpr T ScaleRoundUp(T x) {
+  return ScaleRoundUp(x, static_cast<T>(Ratio::num),
+                      static_cast<T>(Ratio::den));
 }
 
 // Takes the negation of the absolute value of an integer. Unlike abs, this is
