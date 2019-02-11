@@ -1,6 +1,6 @@
 // Various integer arithmetic utility functions.
 //
-// (C) Copyright 2014-2017 Xo Wang <xo@geekshavefeelings.com>
+// (C) Copyright 2014 Xo Wang <xo@geekshavefeelings.com>
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -40,13 +40,34 @@ constexpr size_t ArraySize(const T (&)[N]) {
   return ::Fructose::internal::ArraySizeDeducer<T[N], Rank>();
 }
 
-// Division that rounds the quotient up to the next integer.
+// Gets the sign of a value as +1, -1, or 0 (if input is zero).
+template<typename T>
+constexpr T SignOf(T i) {
+  static_assert(std::is_integral<T>(), "SignOf is valid only for integers.");
+  return (i > 0) - (i < 0);
+}
+
+// Division that rounds the quotient away from zero.
 template<typename N, typename D>
-constexpr std::common_type_t<N, D> DivideRoundUp(N numerator, D denominator) {
-  static_assert(std::is_integral<N>() && std::is_integral<D>(),
-                "DivideRoundUp is valid only for integers.");
-  static_assert(std::is_unsigned<D>(), "denominator must be unsigned");
-  return (numerator + (denominator - static_cast<D>(1))) / denominator;
+constexpr auto DivideRoundUp(N numerator, D denominator) {
+  static_assert(std::is_integral_v<N> && std::is_integral_v<D>,
+                "Function is valid only for integers");
+  static_assert(std::is_signed_v<N> == std::is_signed_v<D>,
+                "Numerator and denominator signedness don't match");
+
+  using ResultT = decltype(std::declval<N>() / std::declval<D>());
+  if (std::is_unsigned_v<N>) {
+    if (numerator == 0) {
+       return static_cast<ResultT>(0);
+    }
+    return static_cast<ResultT>(1) +
+        ((numerator - static_cast<N>(1)) / denominator);
+  }
+  if (denominator < 0) {
+    numerator = -numerator;
+    denominator = -denominator;
+  }
+  return numerator / denominator + SignOf<ResultT>(numerator % denominator);
 }
 
 // Multiply a value against a ratio while maintaining precision and avoiding
@@ -56,8 +77,12 @@ constexpr std::common_type_t<N, D> DivideRoundUp(N numerator, D denominator) {
 // denominator gives the best results.
 template<typename T, typename N, typename D>
 constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
-  static_assert(std::is_integral<T>() && std::is_integral<N>() &&
-                std::is_integral<D>(), "Scale is valid only for integers.");
+  static_assert(std::is_integral_v<T> && std::is_integral_v<N> &&
+                std::is_integral_v<D>, "Function is valid only for integers");
+  static_assert(std::is_signed_v<T> == std::is_signed_v<D> &&
+                std::is_signed_v<T> == std::is_signed_v<D>,
+                "Arguments' signedness don't match");
+
   if ((numerator >= denominator) && (numerator % denominator == 0U)) {
     return x * (numerator / denominator);
   }
@@ -70,9 +95,12 @@ constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
 template<typename T, typename N, typename D>
 constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x, N numerator,
                                                    D denominator) {
-  static_assert(std::is_integral<T>() && std::is_integral<N>() &&
-                std::is_integral<D>(),
-                "ScaleRoundUp is valid only for integers.");
+  static_assert(std::is_integral_v<T> && std::is_integral_v<N> &&
+                std::is_integral_v<D>, "Function is valid only for integers");
+  static_assert(std::is_signed_v<T> == std::is_signed_v<D> &&
+                std::is_signed_v<T> == std::is_signed_v<D>,
+                "Arguments' signedness don't match");
+
   if ((numerator >= denominator) && (numerator % denominator == 0U)) {
     return x * (numerator / denominator);
   }
@@ -130,13 +158,6 @@ constexpr T Clamp(T i, T min, T max) {
   const T lower_bounded = std::max(i, min);
   const T both_bounded = std::min(lower_bounded, max);
   return both_bounded;
-}
-
-// Gets the sign of a value as +1, -1, or 0 (if input is zero).
-template<typename T>
-constexpr T SignOf(T i) {
-  static_assert(std::is_integral<T>(), "SignOf is valid only for integers.");
-  return (i > 0) - (i < 0);
 }
 
 // Maps one range of values linearly to another, with deadband.
