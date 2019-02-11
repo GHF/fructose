@@ -43,7 +43,7 @@ constexpr size_t ArraySize(const T (&)[N]) {
 // Gets the sign of a value as +1, -1, or 0 (if input is zero).
 template <typename T>
 constexpr T SignOf(T i) {
-  static_assert(std::is_integral<T>(), "SignOf is valid only for integers.");
+  static_assert(std::is_integral_v<T>, "Function is valid only for integers.");
   return (i > 0) - (i < 0);
 }
 
@@ -119,8 +119,8 @@ constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x,
 // with INT_MIN.
 template <typename T>
 constexpr T Nabs(T i) {
-  static_assert(std::is_integral<T>() && std::is_signed<T>(),
-                "Nabs is valid only for signed integers.");
+  static_assert(std::is_integral_v<T> && std::is_signed_v<T>,
+                "Function is valid only for signed integers.");
   // Check if signed right shift sign extends (i.e. arithmetic right shift).
   if ((static_cast<T>(-1) >> 1) == static_cast<T>(-1)) {
     constexpr int num_bits = sizeof(T) * 8;
@@ -140,9 +140,9 @@ constexpr T Nabs(T i) {
 // rounding the sum towards zero.
 template <typename T>
 constexpr T Average(T a, T b) {
-  static_assert(std::is_integral<T>(), "Average is valid only for integers.");
-  static_assert(std::is_unsigned<T>() ||
-                    (std::is_signed<T>() &&
+  static_assert(std::is_integral_v<T>, "Function is valid only for integers.");
+  static_assert(std::is_unsigned_v<T> ||
+                    (std::is_signed_v<T> &&
                      ((static_cast<T>(-1) >> 1) == static_cast<T>(-1))),
                 "Arithmetic right shift is not available.");
   // Shifts divide by two, rounded towards negative infinity.
@@ -185,8 +185,8 @@ constexpr T MapRange(T in_low,
                      T out_low,
                      T out_high,
                      T deadband) {
-  static_assert(std::is_integral<T>() && std::is_signed<T>(),
-                "MapRange is valid only for signed integers.");
+  static_assert(std::is_integral_v<T> && std::is_signed_v<T>,
+                "Function is valid only for signed integers.");
   // Center the input range on zero.
   const T in_center = Average(in_low, in_high);
   T centered_input = Clamp(value, in_low, in_high) - in_center;

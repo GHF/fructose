@@ -4,6 +4,8 @@
 #include "base/integer.h"
 
 #include <cstddef>
+#include <limits>
+
 #include "catch2/catch.hpp"
 
 namespace Fructose {
@@ -50,9 +52,17 @@ TEST_CASE("Compute quotient ceiling", "[base][base/integer]") {
   CHECK(2 == DivideRoundUp(3, 2));
   CHECK(2 == DivideRoundUp(5, 3));
 
-  // Numerator + denominator would overflow
-  CHECK(2 == DivideRoundUp(0x40000002, 0x3fffffff));
+  // Unsigned
+  CHECK(0U == DivideRoundUp(0U, 1U));
+  CHECK(0U == DivideRoundUp(0U, 2U));
+  CHECK(1U == DivideRoundUp(1U, 1U));
+  CHECK(1U == DivideRoundUp(1U, 2U));
+  CHECK(2U == DivideRoundUp(2U, 1U));
+  CHECK(2U == DivideRoundUp(3U, 2U));
+  CHECK(2U == DivideRoundUp(5U, 3U));
+}
 
+TEST_CASE("Round negative quotients away from zero", "[base][base/integer]") {
   // Negative quotients round away from zero
   CHECK(-1 == DivideRoundUp(-1, 1));
   CHECK(-1 == DivideRoundUp(-1, 2));
@@ -64,20 +74,18 @@ TEST_CASE("Compute quotient ceiling", "[base][base/integer]") {
   CHECK(-2 == DivideRoundUp(2, -1));
   CHECK(-2 == DivideRoundUp(3, -2));
   CHECK(-2 == DivideRoundUp(5, -3));
+}
 
+TEST_CASE("Division doesn't suffer from overflow", "[base][base/integer]") {
   // Numerator underflow
   CHECK(-2 == DivideRoundUp(std::numeric_limits<int>::min(), 0x40000000));
   CHECK(-3 == DivideRoundUp(std::numeric_limits<int>::min(), 0x3fffffff));
 
-  // Unsigned
-  CHECK(0U == DivideRoundUp(0U, 1U));
-  CHECK(0U == DivideRoundUp(0U, 2U));
-  CHECK(1U == DivideRoundUp(1U, 1U));
-  CHECK(1U == DivideRoundUp(1U, 2U));
-  CHECK(2U == DivideRoundUp(2U, 1U));
-  CHECK(2U == DivideRoundUp(3U, 2U));
-  CHECK(2U == DivideRoundUp(5U, 3U));
+  // Numerator + denominator would overflow
+  CHECK(2 == DivideRoundUp(0x40000002, 0x3fffffff));
+}
 
+TEST_CASE("Divide mixed types", "[base][base/integer]") {
   // sizeof as an argument
   CHECK(2U == DivideRoundUp(sizeof(uint64_t), sizeof(uint32_t)));
   CHECK(2U == DivideRoundUp(8U, sizeof(uint32_t)));
