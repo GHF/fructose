@@ -14,11 +14,11 @@ namespace internal {
 // Recursively reduces rank of the array type until Rank = 0U, which returns
 // the current dimension's bound, or the array type runs out of dimensions,
 // causing the primary template's incomplete struct's instantiation failure.
-template<typename ArrayT, unsigned Rank>
+template <typename ArrayT, unsigned Rank>
 struct ArraySizeDeducer;
-template<typename T, size_t N>
+template <typename T, size_t N>
 struct ArraySizeDeducer<T[N], 0U> : std::integral_constant<size_t, N> {};
-template<typename T, size_t N, unsigned Rank>
+template <typename T, size_t N, unsigned Rank>
 struct ArraySizeDeducer<T[N], Rank> : ArraySizeDeducer<T, Rank - 1> {};
 
 }  // namespace internal
@@ -28,27 +28,27 @@ struct ArraySizeDeducer<T[N], Rank> : ArraySizeDeducer<T, Rank - 1> {};
 // pointer rather than an array. Unlike std::extent<decltype(array)>(), this
 // will fail to compile rather than return 0 for arrays of unknown bound. For
 // multi-dimensional arrays, this returns the first (leftmost) dimension.
-template<typename T, size_t N>
+template <typename T, size_t N>
 constexpr size_t ArraySize(const T (&)[N]) {
   return N;
 }
 
 // Given a Rank template parameter, return the array type's Rankth (from the
 // left) dimension bound.
-template<unsigned Rank, typename T, size_t N>
+template <unsigned Rank, typename T, size_t N>
 constexpr size_t ArraySize(const T (&)[N]) {
   return ::Fructose::internal::ArraySizeDeducer<T[N], Rank>();
 }
 
 // Gets the sign of a value as +1, -1, or 0 (if input is zero).
-template<typename T>
+template <typename T>
 constexpr T SignOf(T i) {
   static_assert(std::is_integral<T>(), "SignOf is valid only for integers.");
   return (i > 0) - (i < 0);
 }
 
 // Division that rounds the quotient away from zero.
-template<typename N, typename D>
+template <typename N, typename D>
 constexpr auto DivideRoundUp(N numerator, D denominator) {
   static_assert(std::is_integral_v<N> && std::is_integral_v<D>,
                 "Function is valid only for integers");
@@ -58,10 +58,10 @@ constexpr auto DivideRoundUp(N numerator, D denominator) {
   using ResultT = decltype(std::declval<N>() / std::declval<D>());
   if (std::is_unsigned_v<N>) {
     if (numerator == 0) {
-       return static_cast<ResultT>(0);
+      return static_cast<ResultT>(0);
     }
     return static_cast<ResultT>(1) +
-        ((numerator - static_cast<N>(1)) / denominator);
+           ((numerator - static_cast<N>(1)) / denominator);
   }
   if (denominator < 0) {
     numerator = -numerator;
@@ -75,12 +75,13 @@ constexpr auto DivideRoundUp(N numerator, D denominator) {
 // remainder * numerator to overflow if numerator is greater than the sqrt of
 // the arithmetic type's range. Simplifying the fraction numerator /
 // denominator gives the best results.
-template<typename T, typename N, typename D>
+template <typename T, typename N, typename D>
 constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
-  static_assert(std::is_integral_v<T> && std::is_integral_v<N> &&
-                std::is_integral_v<D>, "Function is valid only for integers");
+  static_assert(
+      std::is_integral_v<T> && std::is_integral_v<N> && std::is_integral_v<D>,
+      "Function is valid only for integers");
   static_assert(std::is_signed_v<T> == std::is_signed_v<D> &&
-                std::is_signed_v<T> == std::is_signed_v<D>,
+                    std::is_signed_v<T> == std::is_signed_v<D>,
                 "Arguments' signedness don't match");
 
   if ((numerator >= denominator) && (numerator % denominator == 0U)) {
@@ -92,13 +93,15 @@ constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
 }
 
 // Same as Scale, but round results up to the next denominator boundary.
-template<typename T, typename N, typename D>
-constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x, N numerator,
+template <typename T, typename N, typename D>
+constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x,
+                                                   N numerator,
                                                    D denominator) {
-  static_assert(std::is_integral_v<T> && std::is_integral_v<N> &&
-                std::is_integral_v<D>, "Function is valid only for integers");
+  static_assert(
+      std::is_integral_v<T> && std::is_integral_v<N> && std::is_integral_v<D>,
+      "Function is valid only for integers");
   static_assert(std::is_signed_v<T> == std::is_signed_v<D> &&
-                std::is_signed_v<T> == std::is_signed_v<D>,
+                    std::is_signed_v<T> == std::is_signed_v<D>,
                 "Arguments' signedness don't match");
 
   if ((numerator >= denominator) && (numerator % denominator == 0U)) {
@@ -114,7 +117,7 @@ constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x, N numerator,
 // defined for all input values, including INT_MIN. See C99 standard
 // 7.20.6.1.2 and footnote 265 for the description of abs/labs/llabs behavior
 // with INT_MIN.
-template<typename T>
+template <typename T>
 constexpr T Nabs(T i) {
   static_assert(std::is_integral<T>() && std::is_signed<T>(),
                 "Nabs is valid only for signed integers.");
@@ -135,11 +138,12 @@ constexpr T Nabs(T i) {
 // function is erroneous when the sum of the inputs overflows integer limits;
 // this average works by summing the halves of the input values and then
 // rounding the sum towards zero.
-template<typename T>
+template <typename T>
 constexpr T Average(T a, T b) {
   static_assert(std::is_integral<T>(), "Average is valid only for integers.");
-  static_assert(std::is_unsigned<T>() || (std::is_signed<T>() &&
-                    ((static_cast<T>(-1) >> 1) == static_cast<T>(-1))),
+  static_assert(std::is_unsigned<T>() ||
+                    (std::is_signed<T>() &&
+                     ((static_cast<T>(-1) >> 1) == static_cast<T>(-1))),
                 "Arithmetic right shift is not available.");
   // Shifts divide by two, rounded towards negative infinity.
   const T sum_halves = (a >> 1) + (b >> 1);
@@ -153,7 +157,7 @@ constexpr T Average(T a, T b) {
 
 // Clamps a value to a range. The lower bound must be less than or equal to
 // the uppper bound.
-template<typename T>
+template <typename T>
 constexpr T Clamp(T i, T min, T max) {
   const T lower_bounded = std::max(i, min);
   const T both_bounded = std::min(lower_bounded, max);
@@ -174,8 +178,12 @@ constexpr T Clamp(T i, T min, T max) {
 // - out_high: Output range upper bound. Must be greater than out_low.
 // - deadband Distance from center of input range for which all input values
 //            are mapped to "zero" (center of the output range).
-template<typename T>
-constexpr T MapRange(T in_low, T in_high, T value, T out_low, T out_high,
+template <typename T>
+constexpr T MapRange(T in_low,
+                     T in_high,
+                     T value,
+                     T out_low,
+                     T out_high,
                      T deadband) {
   static_assert(std::is_integral<T>() && std::is_signed<T>(),
                 "MapRange is valid only for signed integers.");
