@@ -155,5 +155,19 @@ TEST_CASE("Scaling doesn't overflow naively", "[base][base/integer]") {
   CHECK(6 == ScaleRoundUp<std::ratio<300, 10000>>(static_cast<int16_t>(182)));
 }
 
+TEST_CASE("Take negative absolute value", "[base][base/integer]") {
+  CHECK(0 == Nabs(0));
+  CHECK(-1 == Nabs(1));
+  CHECK(-2 == Nabs(2));
+  CHECK(-3 == Nabs(3));
+  CHECK(-1 == Nabs(-1));
+  CHECK(-2 == Nabs(-2));
+  CHECK(-3 == Nabs(-3));
+  CHECK(std::numeric_limits<int>::min() ==
+        Nabs(std::numeric_limits<int>::min()));
+  CHECK(std::numeric_limits<int>::min() + 1 ==
+        Nabs(std::numeric_limits<int>::max()));
+}
+
 }  // namespace
 }  // namespace Fructose
