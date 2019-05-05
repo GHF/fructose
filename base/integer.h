@@ -138,13 +138,13 @@ constexpr T Nabs(T i) {
   // Check if signed right shift sign extends (i.e. arithmetic right shift).
   if constexpr (internal::has_arithmetic_shift_v<T>) {
     constexpr int num_bits = sizeof(T) * 8;
-    // Splat sign bit into all 32 bits and complement.
+    // Splat sign bit into all bit positions, then complement.
     const T inverse_sign = ~(i >> (num_bits - 1));
     // If i is positive (inverse_sign = -1), this will invert i and add 1.
     // Otherwise (inverse_sign = 0) will be unchanged.
     return (i ^ inverse_sign) - inverse_sign;
   } else {
-    return i < 0 ? i : -i;
+    return i <= 0 ? i : -i;
   }
 }
 
