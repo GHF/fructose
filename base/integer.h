@@ -158,15 +158,22 @@ constexpr T Average(T a, T b) {
   if constexpr (std::is_signed_v<T>) {
     static_assert(internal::has_arithmetic_shift_v<T>,
                   "Arithmetic right shift is not available.");
+    // Shifts divide by two, rounded towards negative infinity.
+    const T sum_halves = (a >> 1) + (b >> 1);
+    // This has error of magnitude one if both are odd.
+    const T both_odd = (a & b) & 1;
+    // Round toward zero; add one if one input is odd and sum is negative.
+    const T round_to_zero = (sum_halves < 0) & (a ^ b);
+    // Result is sum of halves corrected for rounding.
+    return sum_halves + both_odd + round_to_zero;
   }
-  // Shifts divide by two, rounded towards negative infinity.
-  const T sum_halves = (a >> 1) + (b >> 1);
-  // This has error of magnitude one if both are odd.
-  const T both_odd = (a & b) & 1;
-  // Round toward zero; add one if one input is odd and sum is negative.
-  const T round_to_zero = (sum_halves < 0) & (a ^ b);
-  // Result is sum of halves corrected for rounding.
-  return sum_halves + both_odd + round_to_zero;
+
+  // Use a more compiler-friendly form for unsigned integers, where the absolute
+  // difference of a and b will always be in range.
+  if (a > b) {
+    std::swap(a, b);
+  }
+  return a + (b - a) / 2;
 }
 
 // Clamps a value to a range. The lower bound must be less than or equal to

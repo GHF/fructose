@@ -192,7 +192,7 @@ TEST_CASE("Average(a, -b) = -Average(-a, b)", "[base][base/integer]") {
   CHECK(-1 == Average(0, -3));
 }
 
-TEST_CASE("Average(a, b) doesn't overflow", "[base][base/integer]") {
+TEST_CASE("Average doesn't overflow for signed int", "[base][base/integer]") {
   // ...if a + b overflows.
   CHECK(0x5000'0001 == Average(0x5000'0000, 0x5000'0002));
   CHECK(-2'000'000'001 == Average(-2'000'000'000, -2'000'000'002));
@@ -202,6 +202,14 @@ TEST_CASE("Average(a, b) doesn't overflow", "[base][base/integer]") {
 
   // ...if b - a overflows.
   CHECK(1 == Average(-2'000'000'000, 2'000'000'002));
+}
+
+TEST_CASE("Average works with unsigned int", "[base][base/integer]") {
+  // ...if a + b overflows.
+  CHECK(0x9000'0001U == Average(0x9000'0000U, 0x9000'0002U));
+
+  // ...if a > b.
+  CHECK(0x9000'0001U == Average(0x9000'0002U, 0x9000'0000U));
 }
 
 }  // namespace
