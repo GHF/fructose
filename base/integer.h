@@ -21,6 +21,10 @@ struct ArraySizeDeducer<T[N], 0U> : std::integral_constant<size_t, N> {};
 template <typename T, size_t N, unsigned Rank>
 struct ArraySizeDeducer<T[N], Rank> : ArraySizeDeducer<T, Rank - 1> {};
 
+template <typename T>
+constexpr std::enable_if_t<std::is_signed_v<T>, bool> has_arithmetic_shift_v =
+    (static_cast<T>(-1) >> 1) == static_cast<T>(-1);
+
 }  // namespace internal
 
 // Gets the number of elements in any array that has a defined size. Unlike
@@ -132,7 +136,7 @@ constexpr T Nabs(T i) {
   static_assert(std::is_integral_v<T> && std::is_signed_v<T>,
                 "Function is valid only for signed integers.");
   // Check if signed right shift sign extends (i.e. arithmetic right shift).
-  if ((static_cast<T>(-1) >> 1) == static_cast<T>(-1)) {
+  if constexpr (internal::has_arithmetic_shift_v<T>) {
     constexpr int num_bits = sizeof(T) * 8;
     // Splat sign bit into all 32 bits and complement.
     const T inverse_sign = ~(i >> (num_bits - 1));
@@ -152,7 +156,7 @@ template <typename T>
 constexpr T Average(T a, T b) {
   static_assert(std::is_integral_v<T>, "Function is valid only for integers.");
   if constexpr (std::is_signed_v<T>) {
-    static_assert((static_cast<T>(-1) >> 1) == static_cast<T>(-1),
+    static_assert(internal::has_arithmetic_shift_v<T>,
                   "Arithmetic right shift is not available.");
   }
   // Shifts divide by two, rounded towards negative infinity.
