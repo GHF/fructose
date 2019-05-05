@@ -52,5 +52,7 @@ if [[ ! -d ${build_dir} ]]; then
   mkdir -p ${build_dir}
 fi
 
+ln -s -f ${build_dir}/compile_commands.json ./
+
 cd ${build_dir}
 cmake ${cmake_options} ../..
