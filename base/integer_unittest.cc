@@ -169,5 +169,40 @@ TEST_CASE("Take negative absolute value", "[base][base/integer]") {
         Nabs(std::numeric_limits<int>::max()));
 }
 
+TEST_CASE("Average(a, b) = Average(b, a)", "[base][base/integer]") {
+  CHECK(4 == Average(2, 7));
+  CHECK(4 == Average(7, 2));
+  CHECK(-4 == Average(-2, -7));
+  CHECK(-4 == Average(-7, -2));
+}
+
+TEST_CASE("Average(a + 1, b + 1) = Average(a, b) + 1", "[base][base/integer]") {
+  CHECK(3 == Average(2, 4));
+  CHECK(4 == Average(3, 5));
+  CHECK(-3 == Average(-2, -4));
+  CHECK(-4 == Average(-3, -5));
+}
+
+TEST_CASE("Average(a, -b) = -Average(-a, b)", "[base][base/integer]") {
+  CHECK(1 == Average(4, -1));
+  CHECK(-1 == Average(-4, 1));
+  CHECK(0 == Average(1, -2));
+  CHECK(0 == Average(-1, 2));
+  CHECK(1 == Average(0, 3));
+  CHECK(-1 == Average(0, -3));
+}
+
+TEST_CASE("Average(a, b) doesn't overflow", "[base][base/integer]") {
+  // ...if a + b overflows.
+  CHECK(0x5000'0001 == Average(0x5000'0000, 0x5000'0002));
+  CHECK(-2'000'000'001 == Average(-2'000'000'000, -2'000'000'002));
+
+  // ...if a - b overflows.
+  CHECK(-1 == Average(2'000'000'000, -2'000'000'002));
+
+  // ...if b - a overflows.
+  CHECK(1 == Average(-2'000'000'000, 2'000'000'002));
+}
+
 }  // namespace
 }  // namespace Fructose

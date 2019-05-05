@@ -151,10 +151,10 @@ constexpr T Nabs(T i) {
 template <typename T>
 constexpr T Average(T a, T b) {
   static_assert(std::is_integral_v<T>, "Function is valid only for integers.");
-  static_assert(std::is_unsigned_v<T> ||
-                    (std::is_signed_v<T> &&
-                     ((static_cast<T>(-1) >> 1) == static_cast<T>(-1))),
-                "Arithmetic right shift is not available.");
+  if constexpr (std::is_signed_v<T>) {
+    static_assert((static_cast<T>(-1) >> 1) == static_cast<T>(-1),
+                  "Arithmetic right shift is not available.");
+  }
   // Shifts divide by two, rounded towards negative infinity.
   const T sum_halves = (a >> 1) + (b >> 1);
   // This has error of magnitude one if both are odd.
