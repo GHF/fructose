@@ -212,5 +212,11 @@ TEST_CASE("Average works with unsigned int", "[base][base/integer]") {
   CHECK(0x9000'0001U == Average(0x9000'0002U, 0x9000'0000U));
 }
 
+TEST_CASE("Clamp a value to a range", "[base][base/integer]") {
+  CHECK(5 == Clamp(5, 1, 10));
+  CHECK(1 == Clamp(-1, 1, 10));
+  CHECK(10 == Clamp(16, 1, 10));
+}
+
 }  // namespace
 }  // namespace Fructose
