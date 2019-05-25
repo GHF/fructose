@@ -136,7 +136,7 @@ constexpr T Nabs(T i) {
   static_assert(std::is_integral_v<T> && std::is_signed_v<T>,
                 "Function is valid only for signed integers.");
   // Check if signed right shift sign extends (i.e. arithmetic right shift).
-  if constexpr (internal::has_arithmetic_shift_v<T>) {
+  if constexpr (::Fructose::internal::has_arithmetic_shift_v<T>) {
     constexpr int num_bits = sizeof(T) * 8;
     // Splat sign bit into all bit positions, then complement.
     const T inverse_sign = ~(i >> (num_bits - 1));
@@ -156,7 +156,7 @@ template <typename T>
 constexpr T Average(T a, T b) {
   static_assert(std::is_integral_v<T>, "Function is valid only for integers.");
   if constexpr (std::is_signed_v<T>) {
-    static_assert(internal::has_arithmetic_shift_v<T>,
+    static_assert(::Fructose::internal::has_arithmetic_shift_v<T>,
                   "Arithmetic right shift is not available.");
     // Shifts divide by two, rounded towards negative infinity.
     const T sum_halves = (a >> 1) + (b >> 1);
