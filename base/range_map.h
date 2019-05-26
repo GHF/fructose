@@ -47,7 +47,8 @@ class RangeMap final {
 
   // Linearly map |value| from the input range to output range. Values that are
   // within |deadband| distance to the midpoint of the input range will be
-  // mapped to the midpoint of the output range.
+  // mapped to the midpoint of the output range. If |value| is outside of the
+  // input range, it will be clamped to the nearest input range limit.
   [[nodiscard]] constexpr OutT Map(InT value) const {
     // Center the input range on zero.
     InT centered_input = Clamp(value, in_min_, in_max_) - in_midpoint_;

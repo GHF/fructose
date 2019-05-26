@@ -20,6 +20,10 @@ TEST_CASE("Map value in a range to another range", "[base][base/range_map]") {
   CHECK(kServoMin == map.Map(-50));
   CHECK(kServoMax == map.Map(100));
 
+  // Test that the input is clamped against the range limits.
+  CHECK(kServoMin == map.Map(-1000000));
+  CHECK(kServoMax == map.Map(1000000));
+
   CHECK(1333 == map.Map(0));
   CHECK(1667 == map.Map(50));
 }
