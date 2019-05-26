@@ -4,6 +4,7 @@ target_sources(base
     integer.cc
   PUBLIC
     integer.h
+    range_map.h
 )
 target_link_libraries(fructose
   PUBLIC
@@ -13,4 +14,5 @@ target_link_libraries(fructose
 target_sources(fructose-unittest
   PRIVATE
     integer_unittest.cc
+    range_map_unittest.cc
 )
