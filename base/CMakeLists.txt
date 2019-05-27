@@ -1,7 +1,6 @@
 target_sources(fructose
   PRIVATE
     assert.cc
-    integer.cc
   PUBLIC
     assert.h
     integer.h
