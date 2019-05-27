@@ -31,9 +31,11 @@ TEST_CASE("Map value in a range to another range", "[base][base/range_map]") {
 TEST_CASE("Inputs deadband maps to output midpoint", "[base][base/range_map]") {
   constexpr RangeMap map(-100, 100, 10, kServoMin, kServoMax);
 
-  CHECK(1500 == map.Map(0));
-  CHECK(kServoMin == map.Map(-100));
-  CHECK(kServoMax == map.Map(100));
+  SECTION("Test end stops") {
+    CHECK(1500 == map.Map(0));
+    CHECK(kServoMin == map.Map(-100));
+    CHECK(kServoMax == map.Map(100));
+  }
 
   SECTION("Deadband inputs") {
     const int i = GENERATE(range(-10, 10 + 1));
