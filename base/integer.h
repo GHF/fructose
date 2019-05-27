@@ -6,6 +6,7 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <type_traits>
 
 namespace Fructose {
@@ -24,6 +25,13 @@ struct ArraySizeDeducer<T[N], Rank> : ArraySizeDeducer<T, Rank - 1> {};
 template <typename T>
 constexpr std::enable_if_t<std::is_signed_v<T>, bool> has_arithmetic_shift_v =
     (static_cast<T>(-1) >> 1) == static_cast<T>(-1);
+
+// Alias for intmax_t for signed integer types, uintmax_t for unsigned integer
+// types, undefined otherwise.
+template <typename T>
+using max_int_t = std::enable_if_t<
+    std::is_integral_v<T>,
+    std::conditional_t<std::is_signed_v<T>, intmax_t, uintmax_t>>;
 
 }  // namespace internal
 
@@ -49,6 +57,13 @@ template <typename T>
 constexpr T SignOf(T i) {
   static_assert(std::is_integral_v<T>, "Function is valid only for integers.");
   return (i > 0) - (i < 0);
+}
+
+// Returns true if |value| is representable using integer type |T|.
+template <typename T>
+constexpr bool InRange(::Fructose::internal::max_int_t<T> value) {
+  return (value >= std::numeric_limits<T>::min()) &&
+         (value <= std::numeric_limits<T>::max());
 }
 
 // Divides, rounding the quotient away from zero.
@@ -97,6 +112,10 @@ constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
 // Scales a value against a std::ratio known at compile time.
 template <class Ratio, typename T>
 constexpr T Scale(T x) {
+  static_assert(std::is_signed_v<T> || (Ratio::num >= 0),
+                "Can't scale an unsigned value using a negative ratio");
+  static_assert(InRange<T>(Ratio::num * (Ratio::den - SignOf(Ratio::den))),
+                "Computing scaled value may overflow");
   return Scale(x, static_cast<T>(Ratio::num), static_cast<T>(Ratio::den));
 }
 
@@ -123,6 +142,10 @@ constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x,
 
 template <class Ratio, typename T>
 constexpr T ScaleRoundUp(T x) {
+  static_assert(std::is_signed_v<T> || (Ratio::num >= 0),
+                "Can't scale an unsigned value using a negative ratio");
+  static_assert(InRange<T>(Ratio::num * (Ratio::den - SignOf(Ratio::den))),
+                "Computing scaled value may overflow");
   return ScaleRoundUp(x, static_cast<T>(Ratio::num),
                       static_cast<T>(Ratio::den));
 }

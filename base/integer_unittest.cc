@@ -44,6 +44,21 @@ TEST_CASE("Determine sign of unsigned", "[base][base/integer]") {
   CHECK(1 == SignOf(std::numeric_limits<unsigned>::max()));
 }
 
+TEST_CASE("Test if integer is representable", "[base][base/integer]") {
+  CHECK(InRange<int16_t>(0));
+  CHECK(InRange<int16_t>(-1));
+  CHECK(InRange<int16_t>(1));
+  CHECK(InRange<int16_t>(32767));
+  CHECK(InRange<int16_t>(-32768));
+  CHECK(!InRange<int16_t>(32768));
+  CHECK(!InRange<int16_t>(32769));
+
+  CHECK(InRange<uint16_t>(0));
+  CHECK(InRange<uint16_t>(1));
+  CHECK(InRange<uint16_t>(65535));
+  CHECK(!InRange<uint16_t>(65536));
+}
+
 TEST_CASE("Compute quotient ceiling", "[base][base/integer]") {
   CHECK(0 == DivideRoundUp(0, 1));
   CHECK(0 == DivideRoundUp(0, 2));
@@ -162,6 +177,9 @@ TEST_CASE("Scaling doesn't overflow naively", "[base][base/integer]") {
   // 182 % 10000 * 300 overflows, but not if the ratio is simplified
   CHECK(5 == Scale<std::ratio<300, 10000>>(static_cast<int16_t>(182)));
   CHECK(6 == ScaleRoundUp<std::ratio<300, 10000>>(static_cast<int16_t>(182)));
+
+  // This should fail to compile.
+  //CHECK(5 == Scale<std::ratio<301, 10000>>(static_cast<int16_t>(182)));
 }
 
 TEST_CASE("Take negative absolute value", "[base][base/integer]") {
