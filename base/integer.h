@@ -9,6 +9,8 @@
 #include <limits>
 #include <type_traits>
 
+#include "assert.h"
+
 namespace Fructose {
 namespace internal {
 
@@ -73,6 +75,7 @@ constexpr auto DivideRoundUp(N numerator, D denominator) {
                 "Function is valid only for integers");
   static_assert(std::is_signed_v<N> == std::is_signed_v<D>,
                 "Numerator and denominator signedness don't match");
+  FRU_DEBUG_ASSERT(denominator != 0);
 
   using ResultT = decltype(std::declval<N>() / std::declval<D>());
   if (std::is_unsigned_v<N>) {
@@ -100,6 +103,11 @@ constexpr std::common_type_t<T, N, D> Scale(T x, N numerator, D denominator) {
   static_assert(std::is_signed_v<T> == std::is_signed_v<D> &&
                     std::is_signed_v<T> == std::is_signed_v<D>,
                 "Arguments' signedness don't match");
+  FRU_DEBUG_ASSERT(denominator != 0);
+  using int_t = std::common_type_t<T, N, D>;
+  using max_int_t = ::Fructose::internal::max_int_t<int_t>;
+  FRU_DEBUG_ASSERT(InRange<int_t>(
+      numerator * (static_cast<max_int_t>(denominator) - SignOf(denominator))));
 
   if ((numerator >= denominator) && (numerator % denominator == 0U)) {
     return x * (numerator / denominator);
@@ -130,6 +138,11 @@ constexpr std::common_type_t<T, N, D> ScaleRoundUp(T x,
   static_assert(std::is_signed_v<T> == std::is_signed_v<D> &&
                     std::is_signed_v<T> == std::is_signed_v<D>,
                 "Arguments' signedness don't match");
+  FRU_DEBUG_ASSERT(denominator != 0);
+  using int_t = std::common_type_t<T, N, D>;
+  using max_int_t = ::Fructose::internal::max_int_t<int_t>;
+  FRU_DEBUG_ASSERT(InRange<int_t>(
+      numerator * (static_cast<max_int_t>(denominator) - SignOf(denominator))));
 
   if ((numerator >= denominator) && (numerator % denominator == 0U)) {
     return x * (numerator / denominator);
@@ -203,6 +216,7 @@ constexpr T Average(T a, T b) {
 // the uppper bound.
 template <typename T>
 constexpr T Clamp(T i, T min, T max) {
+  FRU_DEBUG_ASSERT(min <= max);
   const T lower_bounded = std::max(i, min);
   const T both_bounded = std::min(lower_bounded, max);
   return both_bounded;

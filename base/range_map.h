@@ -6,8 +6,10 @@
 #include <array>
 #include <numeric>
 #include <type_traits>
+#include <utility>
 
-#include "base/integer.h"
+#include "assert.h"
+#include "integer.h"
 
 namespace Fructose {
 
@@ -40,9 +42,13 @@ class RangeMap final {
         out_midpoint_(Average(out_a, out_b)),
         in_to_out_ratio_(
             ComputeRatio(in_min_, in_max_, deadband_, out_a, out_b)) {
-    // TODO(GHF/fructose#2): Assert that in_min_ < in_max_.
-    // TODO(GHF/fructose#2): Assert that deadband >= 0.
-    // TODO(GHF/fructose#2): Assert that ratio[0] * ratio[1] does not overflow.
+    FRU_ASSERT(in_min_ < in_max_);
+    FRU_ASSERT(deadband >= 0);
+    FRU_ASSERT_MSG(InRange<T>(in_to_out_ratio_[0] *
+                              (static_cast<intmax_t>(in_to_out_ratio_[1]) - 1)),
+                   "Scaling %jd/%jd may overflow.",
+                   static_cast<intmax_t>(in_to_out_ratio_[0]),
+                   static_cast<intmax_t>(in_to_out_ratio_[1]));
   }
 
   // Linearly map |value| from the input range to output range. Values that are
@@ -81,11 +87,11 @@ class RangeMap final {
                                                  InT deadband,
                                                  OutT out_a,
                                                  OutT out_b) {
-    // TODO(GHF/fructose#2): Assert that this is positive.
     const InT in_width = in_max - in_min - 2 * deadband;
+    FRU_ASSERT(in_width > 0);
     const OutT out_width = out_b - out_a;
     const T gcd = std::gcd(in_width, out_width);
-    return {out_width / gcd, in_width / gcd};
+    return {static_cast<T>(out_width / gcd), static_cast<T>(in_width / gcd)};
   }
 
   const InT in_min_;

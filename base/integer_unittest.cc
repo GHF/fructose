@@ -179,7 +179,13 @@ TEST_CASE("Scaling doesn't overflow naively", "[base][base/integer]") {
   CHECK(6 == ScaleRoundUp<std::ratio<300, 10000>>(static_cast<int16_t>(182)));
 
   // This should fail to compile.
-  //CHECK(5 == Scale<std::ratio<301, 10000>>(static_cast<int16_t>(182)));
+  // CHECK(5 == Scale<std::ratio<301, 10000>>(static_cast<int16_t>(182)));
+
+  // This should fail to compile in debug builds.
+  // constexpr int16_t scaled = Scale<int16_t, int16_t, int16_t>(1, 301, 10000);
+
+  // This should fire a debug assert if run.
+  // CHECK(5 == Scale<int16_t, int16_t, int16_t>(182, 301, 10000));
 }
 
 TEST_CASE("Take negative absolute value", "[base][base/integer]") {
