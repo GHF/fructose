@@ -99,7 +99,8 @@ TEST_CASE("Divide mixed types", "[base][base/integer]") {
 }
 
 TEST_CASE("Scale value by a ratio", "[base][base/integer]") {
-  constexpr int A = 3, B = 1000;
+  const int i = GENERATE(1, -1);
+  const int A = 3 * i, B = 1000 * i;
 
   CHECK(0 == Scale(0, A, B));
   CHECK(0 == ScaleRoundUp(0, A, B));
@@ -135,6 +136,14 @@ TEST_CASE("Scale value by a ratio", "[base][base/integer]") {
   CHECK(-667 == ScaleRoundUp(-2, B, A));
   CHECK(-2 == Scale(-2, A, A));
   CHECK(-2 == ScaleRoundUp(-2, A, A));
+}
+
+TEST_CASE("Scale value by an exact ratio", "[base][base/integer]") {
+  const int i = GENERATE(1, -1);
+  const int A = 10 * i, B = 100 * i;
+
+  CHECK(20 == Scale(2, B, A));
+  CHECK(20 == ScaleRoundUp(2, B, A));
 }
 
 TEST_CASE("Scaling doesn't overflow naively", "[base][base/integer]") {
