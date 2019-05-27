@@ -1,5 +1,4 @@
-add_library(base OBJECT)
-target_sources(base
+target_sources(fructose
   PRIVATE
     assert.cc
     integer.cc
@@ -8,10 +7,6 @@ target_sources(base
     integer.h
     macros.h
     range_map.h
-)
-target_link_libraries(fructose
-  PUBLIC
-    base
 )
 
 target_sources(fructose-unittest
