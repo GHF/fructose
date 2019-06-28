@@ -42,3 +42,4 @@ add_subdirectory(testing)
 
 # List all subdirectories containing sources
 add_subdirectory(base)
+add_subdirectory(container)
