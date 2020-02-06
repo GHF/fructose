@@ -14,16 +14,18 @@ namespace Fructose {
 
 class ChibiOsI2cMaster : public I2cMaster {
  public:
-  explicit ChibiOsI2cMaster(I2CDriver *i2c_driver);
+  explicit ChibiOsI2cMaster(I2CDriver* i2c_driver);
   bool Transfer(I2cAddress address,
-                size_t tx_bytes, const uint8_t *tx_buffer,
-                size_t rx_bytes, uint8_t *rx_buffer,
+                size_t tx_bytes,
+                const uint8_t* tx_buffer,
+                size_t rx_bytes,
+                uint8_t* rx_buffer,
                 Duration timeout) override;
   void Acquire() override;
   void Release() override;
 
  private:
-  I2CDriver * const i2c_driver_;
+  I2CDriver* const i2c_driver_;
 };
 
 }  // namespace Fructose

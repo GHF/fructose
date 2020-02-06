@@ -4,21 +4,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "driver/mpu6000.h"
-#include "bus/spi.h"
-#include "os/time.h"
-#include "base/integer.h"
 
 #include <algorithm>
 #include <cmath>
 
+#include "base/integer.h"
+#include "bus/spi.h"
+#include "os/time.h"
+
 namespace Fructose {
 
-Mpu6000::Mpu6000(SpiMaster *spi_master, SpiDevice *spi_device)
+Mpu6000::Mpu6000(SpiMaster* spi_master, SpiDevice* spi_device)
     : spi_master_(spi_master),
       spi_device_(spi_device),
       gyro_scale_(0.f),
-      accel_scale_(0.f) {
-}
+      accel_scale_(0.f) {}
 
 bool Mpu6000::Detect() {
   BusGuard bus_guard(spi_master_);
@@ -60,9 +60,11 @@ void Mpu6000::ResetDevice() {
   Duration::Milliseconds(100).Sleep();
 }
 
-void Mpu6000::SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
-                          AccelFullScaleRange accel_fsr, float desired_rate,
-                          float *actual_rate) {
+void Mpu6000::SetupDevice(GyroLpf lpf_config,
+                          GyroFullScaleRange gyro_fsr,
+                          AccelFullScaleRange accel_fsr,
+                          float desired_rate,
+                          float* actual_rate) {
   static const int kWriteDelayUs = 100;
 
   BusGuard bus_guard(spi_master_);
@@ -104,8 +106,9 @@ void Mpu6000::SetupDevice(GyroLpf lpf_config, GyroFullScaleRange gyro_fsr,
   Duration::Microseconds(kWriteDelayUs).Sleep();
 }
 
-void Mpu6000::ReadRaw(int16_t (*gyro_raw)[3], int16_t (*accel_raw)[3],
-                      int16_t *temp_raw) {
+void Mpu6000::ReadRaw(int16_t (*gyro_raw)[3],
+                      int16_t (*accel_raw)[3],
+                      int16_t* temp_raw) {
   if (gyro_raw == nullptr && accel_raw == nullptr && temp_raw == nullptr) {
     return;
   }
@@ -131,7 +134,7 @@ void Mpu6000::ReadRaw(int16_t (*gyro_raw)[3], int16_t (*accel_raw)[3],
   }
 }
 
-void Mpu6000::Read(float (*gyro)[3], float (*accel)[3], float *temp) {
+void Mpu6000::Read(float (*gyro)[3], float (*accel)[3], float* temp) {
   int16_t gyro_raw[3];
   int16_t accel_raw[3];
   int16_t temp_raw;
@@ -161,7 +164,7 @@ void Mpu6000::WriteRegister(uint8_t address, uint8_t data) {
   spi_device_->Deselect();
 }
 
-void Mpu6000::ReadRegister(uint8_t address, size_t n, uint8_t *rx_buffer) {
+void Mpu6000::ReadRegister(uint8_t address, size_t n, uint8_t* rx_buffer) {
   const uint8_t address_masked = address | kRegisterReadMask;
   spi_device_->Select();
   spi_master_->Transfer(1, &address_masked, nullptr);
@@ -173,19 +176,21 @@ void Mpu6000::ReadRegister(uint8_t address, size_t n, uint8_t *rx_buffer) {
 // duplex transfer.
 uint8_t Mpu6000::ReadRegister(uint8_t address) {
   const uint8_t address_masked = address | kRegisterReadMask;
-  const uint8_t tx_buffer[2] = { address_masked };  // Second byte is dummy.
-  uint8_t rx_buffer[2];  // First byte is dummy.
+  const uint8_t tx_buffer[2] = {address_masked};  // Second byte is dummy.
+  uint8_t rx_buffer[2];                           // First byte is dummy.
   spi_device_->Select();
   spi_master_->Transfer(2, tx_buffer, rx_buffer);
   spi_device_->Deselect();
   return rx_buffer[1];
 }
 
-uint8_t Mpu6000::ComputeDivider(GyroLpf gyro_lpf, float desired_rate,
-                                float *actual_rate) {
-  const float base_rate = gyro_lpf == CONFIG__DLPF_CFG__256_HZ ||
-                          gyro_lpf == CONFIG__DLPF_CFG__NONE ?
-                              8000.f : 1000.f;
+uint8_t Mpu6000::ComputeDivider(GyroLpf gyro_lpf,
+                                float desired_rate,
+                                float* actual_rate) {
+  const float base_rate =
+      gyro_lpf == CONFIG__DLPF_CFG__256_HZ || gyro_lpf == CONFIG__DLPF_CFG__NONE
+          ? 8000.f
+          : 1000.f;
   long denominator;
   if (desired_rate == 0.f) {
     denominator = 256;

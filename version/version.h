@@ -9,8 +9,8 @@
 extern "C" {
 #endif  // __cplusplus
 
-extern const char * const g_build_version;
-extern const char * const g_build_time;
+extern const char* const g_build_version;
+extern const char* const g_build_time;
 
 #ifdef __cplusplus
 }  // extern "C"

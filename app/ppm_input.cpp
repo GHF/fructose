@@ -5,31 +5,31 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "app/ppm_input.h"
-#include "app/log.h"
-#include "base/integer.h"
+
 #include <algorithm>
 
-#include "hal.h"
+#include "app/log.h"
+#include "base/integer.h"
 #include "ch.h"
+#include "hal.h"
 
-PpmInput::PpmInput(ICUDriver *icu_driver)
+PpmInput::PpmInput(ICUDriver* icu_driver)
     : icu_driver_(icu_driver),
       num_overflows_(0),
       commands_(),
       channel_(0),
       last_commands_(),
       last_channels_(0),
-      ppm_listener_(nullptr) {
-}
+      ppm_listener_(nullptr) {}
 
 void PpmInput::Start() {
-  static const ICUConfig kServoIcuConfig = { ICU_INPUT_ACTIVE_HIGH,
-                                             1000000,
-                                             IcuWidthCallback,
-                                             IcuPeriodCallback,
-                                             IcuOverflowCallback,
-                                             ICU_CHANNEL_1,
-                                             0 };
+  static const ICUConfig kServoIcuConfig = {ICU_INPUT_ACTIVE_HIGH,
+                                            1000000,
+                                            IcuWidthCallback,
+                                            IcuPeriodCallback,
+                                            IcuOverflowCallback,
+                                            ICU_CHANNEL_1,
+                                            0};
   icu_driver_->self = this;
   LogInfo("Configuring PPM input capture at %lu kHz...",
           kServoIcuConfig.frequency / 1000U);
@@ -44,7 +44,7 @@ void PpmInput::StartCapture() {
   LogInfo("Started PPM input capture.");
 }
 
-int PpmInput::ReadCommands(int commands_capacity, uint16_t *commands) {
+int PpmInput::ReadCommands(int commands_capacity, uint16_t* commands) {
   if (last_channels_ > 0) {
     const syssts_t sys_status = chSysGetStatusAndLockX();
     const int num_channels = std::min(last_channels_, commands_capacity);
@@ -92,8 +92,8 @@ void PpmInput::HandlePulse(int width, int period) {
   num_overflows_ = 0;
 }
 
-void PpmInput::IcuWidthCallback(ICUDriver *icu_driver) {
-  PpmInput * const ppm_input = static_cast<PpmInput *>(icu_driver->self);
+void PpmInput::IcuWidthCallback(ICUDriver* icu_driver) {
+  PpmInput* const ppm_input = static_cast<PpmInput*>(icu_driver->self);
   // Overflowed while waiting for negative edge, but still got one.
   if (ppm_input->num_overflows_ > 0) {
     // Reset PPM parsing to initial state without alerting listener.
@@ -101,15 +101,15 @@ void PpmInput::IcuWidthCallback(ICUDriver *icu_driver) {
   }
 }
 
-void PpmInput::IcuPeriodCallback(ICUDriver *icu_driver) {
-  PpmInput * const ppm_input = static_cast<PpmInput *>(icu_driver->self);
+void PpmInput::IcuPeriodCallback(ICUDriver* icu_driver) {
+  PpmInput* const ppm_input = static_cast<PpmInput*>(icu_driver->self);
   const uint16_t pulse_width = icuGetWidthX(icu_driver);
   const uint16_t pulse_period = icuGetPeriodX(icu_driver);
   ppm_input->HandlePulse(pulse_width, pulse_period);
 }
 
-void PpmInput::IcuOverflowCallback(ICUDriver *icu_driver) {
-  PpmInput * const ppm_input = static_cast<PpmInput *>(icu_driver->self);
+void PpmInput::IcuOverflowCallback(ICUDriver* icu_driver) {
+  PpmInput* const ppm_input = static_cast<PpmInput*>(icu_driver->self);
   // Increment with saturation.
   ppm_input->num_overflows_ =
       std::max(ppm_input->num_overflows_, ppm_input->num_overflows_ + 1);

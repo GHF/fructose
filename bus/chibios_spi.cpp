@@ -9,12 +9,12 @@
 
 namespace Fructose {
 
-ChibiOsSpiMaster::ChibiOsSpiMaster(SPIDriver *spi_driver)
-    : spi_driver_(spi_driver) {
-}
+ChibiOsSpiMaster::ChibiOsSpiMaster(SPIDriver* spi_driver)
+    : spi_driver_(spi_driver) {}
 
-void ChibiOsSpiMaster::Transfer(size_t n, const void *tx_buffer,
-                                void *rx_buffer) {
+void ChibiOsSpiMaster::Transfer(size_t n,
+                                const void* tx_buffer,
+                                void* rx_buffer) {
   osalDbgCheck(tx_buffer != nullptr || rx_buffer != nullptr);
 
   if (tx_buffer == nullptr) {
@@ -38,9 +38,7 @@ void ChibiOsSpiMaster::Release() {
 #endif  // SPI_USE_MUTUAL_EXCLUSION
 }
 
-ChibiOsSpiDevice::ChibiOsSpiDevice(GpioLine select)
-    : select_(select) {
-}
+ChibiOsSpiDevice::ChibiOsSpiDevice(GpioLine select) : select_(select) {}
 
 void ChibiOsSpiDevice::Select() {
   Gpio::Clear(select_);

@@ -5,22 +5,21 @@
 
 #pragma once
 
-#include "bus/bus_master.h"
 #include <cstddef>
+
+#include "bus/bus_master.h"
 
 namespace Fructose {
 
 class SpiMaster : public BusMaster {
  public:
-  virtual ~SpiMaster() {
-  }
-  virtual void Transfer(size_t n, const void *tx_buffer, void *rx_buffer) = 0;
+  virtual ~SpiMaster() {}
+  virtual void Transfer(size_t n, const void* tx_buffer, void* rx_buffer) = 0;
 };
 
 class SpiDevice {
  public:
-  virtual ~SpiDevice() {
-  }
+  virtual ~SpiDevice() {}
   virtual void Select() = 0;
   virtual void Deselect() = 0;
 };

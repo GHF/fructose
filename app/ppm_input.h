@@ -14,18 +14,16 @@ class PpmListener;
 
 class PpmInputInterface {
  public:
-  virtual ~PpmInputInterface() {
-  }
+  virtual ~PpmInputInterface() {}
   virtual void StartCapture() = 0;
-  virtual int ReadCommands(int commands_capacity, uint16_t *commands) = 0;
-  virtual void SetPpmListener(PpmListener *ppm_listener) = 0;
+  virtual int ReadCommands(int commands_capacity, uint16_t* commands) = 0;
+  virtual void SetPpmListener(PpmListener* ppm_listener) = 0;
 };
 
 class PpmListener {
  public:
-  virtual ~PpmListener() {
-  }
-  virtual void HandleCommandsFromIsr(PpmInputInterface *ppm_input) = 0;
+  virtual ~PpmListener() {}
+  virtual void HandleCommandsFromIsr(PpmInputInterface* ppm_input) = 0;
 };
 
 /**
@@ -38,15 +36,15 @@ class PpmInput : public PpmInputInterface {
    *
    * @param icu_driver OS driver for capturing servo input edges.
    */
-  PpmInput(ICUDriver *icu_driver);
+  PpmInput(ICUDriver* icu_driver);
   void Start();
 
   /**
    * @brief Starts capturing and processing RC PPM input.
    */
   void StartCapture() override;
-  int ReadCommands(int commands_capacity, uint16_t *commands) override;
-  void SetPpmListener(PpmListener *ppm_listener) override {
+  int ReadCommands(int commands_capacity, uint16_t* commands) override;
+  void SetPpmListener(PpmListener* ppm_listener) override {
     ppm_listener_ = ppm_listener;
   }
 
@@ -73,27 +71,27 @@ class PpmInput : public PpmInputInterface {
    *
    * @param icu_driver Input capture OS driver that originated the callback.
    */
-  static void IcuWidthCallback(ICUDriver *icu_driver);
+  static void IcuWidthCallback(ICUDriver* icu_driver);
 
   /**
    * @brief Handles servo pulse input rising edges.
    *
    * @param icu_driver Input capture OS driver that originated the callback.
    */
-  static void IcuPeriodCallback(ICUDriver *icu_driver);
+  static void IcuPeriodCallback(ICUDriver* icu_driver);
 
   /**
    * @brief Handles servo pulse input unit timer overflows.
    *
    * @param icu_driver Input capture OS driver that originated the callback.
    */
-  static void IcuOverflowCallback(ICUDriver *icu_driver);
+  static void IcuOverflowCallback(ICUDriver* icu_driver);
 
-  ICUDriver * const icu_driver_;  ///< Timer input capture driver.
+  ICUDriver* const icu_driver_;  ///< Timer input capture driver.
   int num_overflows_;  ///< Times the timer overflowed since last edge.
   uint16_t commands_[kMaxChannels];  ///< Storage for current channels.
-  int channel_;  ///< Index of current command to capture.
+  int channel_;                      ///< Index of current command to capture.
   uint16_t last_commands_[kMaxChannels];  ///< Commands to be read by user.
-  int last_channels_;  ///< Number of commands stored.
-  PpmListener *ppm_listener_;
+  int last_channels_;                     ///< Number of commands stored.
+  PpmListener* ppm_listener_;
 };

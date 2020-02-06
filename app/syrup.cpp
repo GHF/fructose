@@ -5,24 +5,24 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "app/syrup.h"
-#include "os/time.h"
-#include "base/integer.h"
-#include "os/chibios_time.h"
-#include "app/log.h"
+
 #include <cmath>
 
-#include "hal.h"
+#include "app/log.h"
+#include "base/integer.h"
 #include "ch.h"
+#include "hal.h"
+#include "os/chibios_time.h"
+#include "os/time.h"
 
-Syrup::Syrup(const SyrupConfig *config)
+Syrup::Syrup(const SyrupConfig* config)
     : config_(config),
       dac_motors_{config->motor_left, config->motor_right},
       dir_gpios_{config->dir_left_gpio, config->dir_right_gpio},
       thread_main_(chThdGetSelfX()),
       drive_enabled_(false),
       commands_mutex_(_MUTEX_DATA(commands_mutex_)),
-      commands_() {
-}
+      commands_() {}
 
 void Syrup::RunLed() {
   using namespace Fructose;
@@ -31,15 +31,11 @@ void Syrup::RunLed() {
     Duration on;
     Duration off;
   };
-  static constexpr Blink disabled = {
-      Duration::Milliseconds(500),
-      Duration::Milliseconds(1000)
-  };
-  static constexpr Blink enabled = {
-      Duration::Milliseconds(200),
-      Duration::Milliseconds(100)
-  };
-  const Blink *pattern = &disabled;
+  static constexpr Blink disabled = {Duration::Milliseconds(500),
+                                     Duration::Milliseconds(1000)};
+  static constexpr Blink enabled = {Duration::Milliseconds(200),
+                                    Duration::Milliseconds(100)};
+  const Blink* pattern = &disabled;
   TimePoint time_point = TimePoint::Now();
   while (true) {
     Gpio::Clear(config_->led_stat_gpio);
@@ -62,8 +58,8 @@ void Syrup::RunMain() {
     const eventmask_t events = chEvtWaitAnyTimeout(1U, MS2ST(1000));
     if (events != 0) {
       uint16_t commands[kCommandChannels] = {};
-      const int num_channels = config_->ppm_input->ReadCommands(
-          ArraySize(commands), commands);
+      const int num_channels =
+          config_->ppm_input->ReadCommands(ArraySize(commands), commands);
       if (num_channels < kCommandChannels) {
         LogWarning("Read PPM train with only %d channels.", num_channels);
         continue;
@@ -93,8 +89,8 @@ static constexpr float CommandFromRaw(int command_raw) {
   const int kCommandMin = 1000;
   const int kCommandMax = 2000;
   const int kDeadband = 20;
-  const int command = Fructose::MapRange(kCommandMin, kCommandMax,
-                                         command_raw, -1000, 1000, kDeadband);
+  const int command = Fructose::MapRange(kCommandMin, kCommandMax, command_raw,
+                                         -1000, 1000, kDeadband);
   return command * static_cast<float>(1.0 / 1000);
 }
 
@@ -134,10 +130,9 @@ void Syrup::Start() {
   WriteMotor(kRight, 0.f, timeout);
 
   config_->imu->ResetDevice();
-  config_->imu->SetupDevice(Mpu6000::CONFIG__DLPF_CFG__188_HZ,
-                            Mpu6000::GYRO_CONFIG__FS_SEL__1000_DPS,
-                            Mpu6000::ACCEL_CONFIG__FS_SEL__8_G,
-                            kGyroRate, nullptr);
+  config_->imu->SetupDevice(
+      Mpu6000::CONFIG__DLPF_CFG__188_HZ, Mpu6000::GYRO_CONFIG__FS_SEL__1000_DPS,
+      Mpu6000::ACCEL_CONFIG__FS_SEL__8_G, kGyroRate, nullptr);
 
   config_->ppm_input->SetPpmListener(this);
   config_->ppm_input->StartCapture();
@@ -145,7 +140,8 @@ void Syrup::Start() {
   Gpio::Set(config_->led_warn_gpio);
 }
 
-bool Syrup::WriteMotor(MotorChannel motor_channel, float command,
+bool Syrup::WriteMotor(MotorChannel motor_channel,
+                       float command,
                        Fructose::Duration timeout) {
   const float abs_command = ::fabsf(command);
   const bool direction = std::signbit(command);
@@ -157,7 +153,7 @@ bool Syrup::WriteMotor(MotorChannel motor_channel, float command,
   return status;
 }
 
-void Syrup::HandleCommandsFromIsr(PpmInputInterface *) {
+void Syrup::HandleCommandsFromIsr(PpmInputInterface*) {
   // Wake input handling loop.
   osalSysLockFromISR();
   chEvtSignalI(thread_main_, 1U);

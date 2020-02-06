@@ -32,14 +32,14 @@
 
 #if LOGGING_USE_CHPRINTF
 #include "ch.h"
-#include "hal.h"
 #include "chprintf.h"
+#include "hal.h"
 
 /* Default file descriptor to log to. */
 #ifndef LOGGING_FILE
-#define LOGGING_FILE ((BaseSequentialStream *)&DEBUG_SERIAL)
+#define LOGGING_FILE ((BaseSequentialStream*)&DEBUG_SERIAL)
 #endif
-#define LOG_FPRINTF(file, ...)              chprintf(file, __VA_ARGS__)
+#define LOG_FPRINTF(file, ...) chprintf(file, __VA_ARGS__)
 #define LOG_VFPRINTF(file, format, va_list) chvprintf(file, format, va_list)
 #else
 #include <stdio.h>
@@ -48,9 +48,9 @@
 #ifndef LOGGING_FILE
 #define LOGGING_FILE stderr
 #endif
-#define LOG_FPRINTF(file, ...)              fprintf(file, __VA_ARGS__)
+#define LOG_FPRINTF(file, ...) fprintf(file, __VA_ARGS__)
 #define LOG_VFPRINTF(file, format, va_list) vfprintf(file, format, va_list)
-#endif  /* #if LOGGING_USE_CHPRINTF */
+#endif /* #if LOGGING_USE_CHPRINTF */
 
 #ifndef STATIC_LOGGING_LEVEL
 static LoggingLevel g_logging_level = LOGGING_DEFAULT_LEVEL;
@@ -65,59 +65,55 @@ void SetLoggingLevel(LoggingLevel level) {
   else
     g_logging_level = level;
 }
-#endif  /* STATIC_LOGGING_LEVEL */
+#endif /* STATIC_LOGGING_LEVEL */
 
 /* ANSI color codes. */
-#define ANSI_RESET            "\x1b[0m"
-#define ANSI_BOLD             "\x1b[1m"
-#define ANSI_UNDERLINE        "\x1b[4m"
-#define ANSI_REVERSE          "\x1b[7m"
-#define ANSI_BOLD_OFF         "\x1b[22m"
-#define ANSI_UNDERLINE_OFF    "\x1b[24m"
-#define ANSI_REVERSE_OFF      "\x1b[27m"
-#define ANSI_COLOR_BLACK      "\x1b[30m"
-#define ANSI_COLOR_RED        "\x1b[31m"
-#define ANSI_COLOR_GREEN      "\x1b[32m"
-#define ANSI_COLOR_YELLOW     "\x1b[33m"
-#define ANSI_COLOR_BLUE       "\x1b[34m"
-#define ANSI_COLOR_MAGENTA    "\x1b[35m"
-#define ANSI_COLOR_CYAN       "\x1b[36m"
-#define ANSI_COLOR_WHITE      "\x1b[37m"
-#define ANSI_COLOR_OFF        "\x1b[39m"
-#define ANSI_BGCOL_BLACK      "\x1b[40m"
-#define ANSI_BGCOL_RED        "\x1b[41m"
-#define ANSI_BGCOL_GREEN      "\x1b[42m"
-#define ANSI_BGCOL_YELLOW     "\x1b[43m"
-#define ANSI_BGCOL_BLUE       "\x1b[44m"
-#define ANSI_BGCOL_MAGENTA    "\x1b[45m"
-#define ANSI_BGCOL_CYAN       "\x1b[46m"
-#define ANSI_BGCOL_WHITE      "\x1b[47m"
-#define ANSI_BGCOL_OFF        "\x1b[49m"
+#define ANSI_RESET "\x1b[0m"
+#define ANSI_BOLD "\x1b[1m"
+#define ANSI_UNDERLINE "\x1b[4m"
+#define ANSI_REVERSE "\x1b[7m"
+#define ANSI_BOLD_OFF "\x1b[22m"
+#define ANSI_UNDERLINE_OFF "\x1b[24m"
+#define ANSI_REVERSE_OFF "\x1b[27m"
+#define ANSI_COLOR_BLACK "\x1b[30m"
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GREEN "\x1b[32m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
+#define ANSI_COLOR_BLUE "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN "\x1b[36m"
+#define ANSI_COLOR_WHITE "\x1b[37m"
+#define ANSI_COLOR_OFF "\x1b[39m"
+#define ANSI_BGCOL_BLACK "\x1b[40m"
+#define ANSI_BGCOL_RED "\x1b[41m"
+#define ANSI_BGCOL_GREEN "\x1b[42m"
+#define ANSI_BGCOL_YELLOW "\x1b[43m"
+#define ANSI_BGCOL_BLUE "\x1b[44m"
+#define ANSI_BGCOL_MAGENTA "\x1b[45m"
+#define ANSI_BGCOL_CYAN "\x1b[46m"
+#define ANSI_BGCOL_WHITE "\x1b[47m"
+#define ANSI_BGCOL_OFF "\x1b[49m"
 
 void vLogAtLevel(LoggingLevel level,
-                 const char *func,
-                 const char *format,
+                 const char* func,
+                 const char* format,
                  va_list args) {
-  const char * const level_prefixes[] = { "",
-                                          ANSI_BOLD,
-                                          ANSI_BOLD ANSI_COLOR_YELLOW,
-                                          ANSI_BOLD ANSI_COLOR_RED,
-                                          ANSI_BOLD ANSI_BGCOL_RED,
-                                          ANSI_REVERSE };
+  const char* const level_prefixes[] = {"",
+                                        ANSI_BOLD,
+                                        ANSI_BOLD ANSI_COLOR_YELLOW,
+                                        ANSI_BOLD ANSI_COLOR_RED,
+                                        ANSI_BOLD ANSI_BGCOL_RED,
+                                        ANSI_REVERSE};
 
-  const char * const level_names[] = { "DEBUG",
-                                       "INFO",
-                                       "WARNING",
-                                       "ERROR",
-                                       "CRITICAL",
-                                       "INVALID_LEVEL" };
+  const char* const level_names[] = {"DEBUG", "INFO",     "WARNING",
+                                     "ERROR", "CRITICAL", "INVALID_LEVEL"};
 
-  const char * const level_suffixes[] = { "",
-                                          ANSI_BOLD_OFF,
-                                          ANSI_COLOR_OFF ANSI_BOLD_OFF,
-                                          ANSI_COLOR_OFF ANSI_BOLD_OFF,
-                                          ANSI_BGCOL_OFF ANSI_BOLD_OFF,
-                                          ANSI_REVERSE_OFF };
+  const char* const level_suffixes[] = {"",
+                                        ANSI_BOLD_OFF,
+                                        ANSI_COLOR_OFF ANSI_BOLD_OFF,
+                                        ANSI_COLOR_OFF ANSI_BOLD_OFF,
+                                        ANSI_BGCOL_OFF ANSI_BOLD_OFF,
+                                        ANSI_REVERSE_OFF};
 
   if (level < GetLoggingLevel())
     return;
@@ -125,18 +121,14 @@ void vLogAtLevel(LoggingLevel level,
   if (level > LOGGING_NUM_LEVELS)
     level = LOGGING_NUM_LEVELS;
 
-  LOG_FPRINTF(LOGGING_FILE,
-              "%s%s%s:%s:",
-              level_prefixes[level],
-              level_names[level],
-              level_suffixes[level],
-              func);
+  LOG_FPRINTF(LOGGING_FILE, "%s%s%s:%s:", level_prefixes[level],
+              level_names[level], level_suffixes[level], func);
 
   LOG_VFPRINTF(LOGGING_FILE, format, args);
   LOG_FPRINTF(LOGGING_FILE, "\r\n");
 }
 
-void LogAtLevel(LoggingLevel level, const char *func, const char *format, ...) {
+void LogAtLevel(LoggingLevel level, const char* func, const char* format, ...) {
   va_list args;
   va_start(args, format);
   vLogAtLevel(level, func, format, args);
