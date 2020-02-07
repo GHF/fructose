@@ -131,6 +131,7 @@ CPPSRC = \
     $(ALLCPPSRC) \
     app/syrup.cpp \
     app/ppm_input.cpp \
+    base/assert.cc \
     bus/chibios_i2c.cpp \
     bus/chibios_spi.cpp \
     driver/mcp4725.cpp \

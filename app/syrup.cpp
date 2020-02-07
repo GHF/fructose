@@ -10,10 +10,22 @@
 
 #include "app/log.h"
 #include "base/integer.h"
+#include "base/range_map.h"
 #include "ch.h"
 #include "hal.h"
 #include "os/chibios_time.h"
 #include "os/time.h"
+
+namespace {
+
+Fructose::RangeMap kCommandMapper(1000, 2000, 20, -1000, 1000);
+
+constexpr float CommandFromRaw(int command_raw) {
+  const int command = kCommandMapper.Map(command_raw);
+  return command * static_cast<float>(1.0 / 1000);
+}
+
+}  // namespace
 
 Syrup::Syrup(const SyrupConfig* config)
     : config_(config),
@@ -83,15 +95,6 @@ void Syrup::RunMain() {
       LogDebug("timed out waiting for PPM input");
     }
   }
-}
-
-static constexpr float CommandFromRaw(int command_raw) {
-  const int kCommandMin = 1000;
-  const int kCommandMax = 2000;
-  const int kDeadband = 20;
-  const int command = Fructose::MapRange(kCommandMin, kCommandMax, command_raw,
-                                         -1000, 1000, kDeadband);
-  return command * static_cast<float>(1.0 / 1000);
 }
 
 void Syrup::RunGyro() {
