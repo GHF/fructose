@@ -55,7 +55,7 @@ void Syrup::RunMain() {
 
   while (true) {
     // Wait for next PPM pulse train.
-    const eventmask_t events = chEvtWaitAnyTimeout(1U, MS2ST(1000));
+    const eventmask_t events = chEvtWaitAnyTimeout(1U, TIME_MS2I(1000));
     if (events != 0) {
       uint16_t commands[kCommandChannels] = {};
       const int num_channels =

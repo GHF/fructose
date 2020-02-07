@@ -9,7 +9,7 @@
 #include "gpio/gpio.h"
 
 // Forward declarations.
-struct SPIDriver;
+typedef struct hal_spi_driver SPIDriver;
 
 namespace Fructose {
 

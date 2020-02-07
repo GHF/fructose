@@ -1,7 +1,9 @@
-# Required include directories
-ifeq ($(BOARDINC),)
-  BOARDINC := $(dir $(lastword $(MAKEFILE_LIST)))
-endif
-
 # List of all the board related files.
-BOARDSRC = $(BOARDINC)board.c
+BOARDSRC = ./boards/OP_REVOLUTION/board.c
+
+# Required include directories
+BOARDINC = ./boards/OP_REVOLUTION
+
+# Shared variables
+ALLCSRC += $(BOARDSRC)
+ALLINC  += $(BOARDINC)

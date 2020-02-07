@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2019 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@
 
 #ifndef BOARD_H
 #define BOARD_H
+
+/*===========================================================================*/
+/* Driver constants.                                                         */
+/*===========================================================================*/
 
 /*
  * Setup for OpenPilot Revolution board.
@@ -230,7 +234,6 @@
 #define LINE_SWDIO                  PAL_LINE(GPIOA, 13U)
 #define LINE_SWCLK                  PAL_LINE(GPIOA, 14U)
 #define LINE_MODEM_CS               PAL_LINE(GPIOA, 15U)
-
 #define LINE_SERVO_OUT_1            PAL_LINE(GPIOB, 0U)
 #define LINE_SERVO_OUT_2            PAL_LINE(GPIOB, 1U)
 #define LINE_BOOT0                  PAL_LINE(GPIOB, 2U)
@@ -246,7 +249,6 @@
 #define LINE_INPUT_PIN_4            PAL_LINE(GPIOB, 13U)
 #define LINE_SERVO_IN_1             PAL_LINE(GPIOB, 14U)
 #define LINE_SERVO_IN_2             PAL_LINE(GPIOB, 15U)
-
 #define LINE_SBUS_INV               PAL_LINE(GPIOC, 0U)
 #define LINE_CURR_ANA               PAL_LINE(GPIOC, 1U)
 #define LINE_VOLT_ANA               PAL_LINE(GPIOC, 2U)
@@ -260,15 +262,25 @@
 #define LINE_MODEM_FLASH_SCK        PAL_LINE(GPIOC, 10U)
 #define LINE_MODEM_FLASH_MISO       PAL_LINE(GPIOC, 11U)
 #define LINE_MODEM_FLASH_MOSI       PAL_LINE(GPIOC, 12U)
-
 #define LINE_OSC_IN                 PAL_LINE(GPIOD, 0U)
 #define LINE_OSC_OUT                PAL_LINE(GPIOD, 1U)
 #define LINE_MODEM_IRQ              PAL_LINE(GPIOD, 2U)
 
+/*===========================================================================*/
+/* Driver pre-compile time settings.                                         */
+/*===========================================================================*/
 
+/*===========================================================================*/
+/* Derived constants and error checks.                                       */
+/*===========================================================================*/
 
+/*===========================================================================*/
+/* Driver data structures and types.                                         */
+/*===========================================================================*/
 
-
+/*===========================================================================*/
+/* Driver macros.                                                            */
+/*===========================================================================*/
 
 /*
  * I/O ports initial setup, this configuration is established soon after reset
@@ -1345,6 +1357,9 @@
                                      PIN_AFIO_AF(GPIOI_PIN14, 0U) |         \
                                      PIN_AFIO_AF(GPIOI_PIN15, 0U))
 
+/*===========================================================================*/
+/* External declarations.                                                    */
+/*===========================================================================*/
 
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus

@@ -6,6 +6,7 @@
   <configuration_settings>
     <templates_path>resources/gencfg/processors/boards/stm32f4xx/templates</templates_path>
     <output_path>.</output_path>
+    <board_files_path>./boards</board_files_path>
     <hal_version>5.0.x</hal_version>
   </configuration_settings>
   <board_name>OpenPilot Revolution</board_name>

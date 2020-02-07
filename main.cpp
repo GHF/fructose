@@ -23,8 +23,22 @@ static SerialDriver* const kDebugSerial = &SD4;
 static SPIDriver* const kMpuSpi = &SPID1;
 static const GpioLine kMpuSpiCs = LINE_MPU_CS;
 static constexpr SPIConfig kMpuSpiConfig = {
-    // APB1/prescaler = 84 MHz / 128 = 656.25 kHz.
-    nullptr, 0, 0, SPI_CR1_BR_2 | SPI_CR1_BR_1, 0};
+    /*circular=*/false,
+    /*end_cb=*/nullptr,
+#if (SPI_SELECT_MODE == SPI_SELECT_MODE_LINE)
+    /*ssline=*/0,
+#endif  // SPI_SELECT_MODE
+#if (SPI_SELECT_MODE == SPI_SELECT_MODE_PORT)
+    /*ssport=*/0,
+    /*ssmask=*/0,
+#endif  // SPI_SELECT_MODE
+#if (SPI_SELECT_MODE == SPI_SELECT_MODE_PAD)
+    /*ssport=*/0,
+    /*sspad=*/0,
+#endif  // SPI_SELECT_MODE
+        // APB1/prescaler = 84 MHz / 128 = 656.25 kHz.
+    /*cr1=*/SPI_CR1_BR_2 | SPI_CR1_BR_1,
+    /*cr2=*/0};
 static I2CDriver* const kMcpI2c = &I2CD2;
 static constexpr I2CConfig kMcpI2cConfig = {OPMODE_I2C, 400000,
                                             FAST_DUTY_CYCLE_2};
@@ -77,7 +91,7 @@ static THD_FUNCTION(WatchForReset, arg) {
   chRegSetThreadName(__func__);
   bool etx_received = false;
   while (true) {
-    const msg_t msg = chnGetTimeout(serial, MS2ST(500));
+    const msg_t msg = chnGetTimeout(serial, TIME_MS2I(500));
     if (msg == Q_TIMEOUT || msg == Q_RESET) {
       etx_received = false;
       continue;
