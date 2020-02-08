@@ -38,27 +38,16 @@ Syrup::Syrup(const SyrupConfig* config)
 
 void Syrup::RunLed() {
   using namespace Fructose;
-
-  struct Blink {
-    Duration on;
-    Duration off;
-  };
-  static constexpr Blink disabled = {Duration::Milliseconds(500),
-                                     Duration::Milliseconds(1000)};
-  static constexpr Blink enabled = {Duration::Milliseconds(200),
-                                    Duration::Milliseconds(100)};
-  const Blink* pattern = &disabled;
   TimePoint time_point = TimePoint::Now();
   while (true) {
-    Gpio::Clear(config_->led_stat_gpio);
-    pattern = drive_enabled_ ? &enabled : &disabled;
-    time_point = time_point.After(pattern->on);
-    time_point.SleepUntil();
-
     Gpio::Set(config_->led_stat_gpio);
-    pattern = drive_enabled_ ? &enabled : &disabled;
-    time_point = time_point.After(pattern->off);
+    time_point = time_point.After(Duration::Milliseconds(100));
     time_point.SleepUntil();
+    if (drive_enabled_) {
+      Gpio::Clear(config_->led_stat_gpio);
+      time_point = time_point.After(Duration::Milliseconds(200));
+      time_point.SleepUntil();
+    }
   }
 }
 
