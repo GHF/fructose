@@ -56,8 +56,9 @@ int PpmInput::ReadCommands(int commands_capacity, uint16_t* commands) {
 }
 
 void PpmInput::HandlePulse(int width, int period) {
+  static_cast<void>(width);
   if (num_overflows_ == 0) {
-    if (width >= kSyncMin) {
+    if (period >= kSyncMin) {
       if (channel_ > 0) {
         // Store captured channels for listener access.
         osalSysLockFromISR();
@@ -74,7 +75,6 @@ void PpmInput::HandlePulse(int width, int period) {
     } else if ((period >= kInputMin) && (period <= kInputMax)) {
       // Valid command captured. Store to the next channel.
       if (channel_ < kMaxChannels) {
-        // TODO: Send alert for new pulse.
         osalSysLockFromISR();
         commands_[channel_] = period;
         channel_++;

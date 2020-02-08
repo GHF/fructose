@@ -49,7 +49,7 @@ class PpmInput : public PpmInputInterface {
   }
 
  protected:
-  /// Lower bound of pulse width to be considered a sync pulse.
+  /// Lower bound of pulse period to be considered a sync pulse.
   static constexpr int kSyncMin = 5000;
   /// Lower bound of channel width.
   static constexpr int kInputMin = 970;
