@@ -5,9 +5,6 @@
 
 #include "macros.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-zero-length"
-
 // Check a boolean expression |condition| and if it's false, invoke a handler
 // FRU_ASSERT_FAILURE_HANDLER. A default handler is provided that prints the
 // assertion data then calls std::abort().
@@ -99,5 +96,3 @@ inline bool CheckPrintfFormat(const char*, ...) {
 
 }  // namespace internal
 }  // namespace Fructose
-
-#pragma GCC diagnostic pop
