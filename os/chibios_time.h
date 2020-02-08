@@ -5,10 +5,9 @@
 
 #pragma once
 
-#include "os/time.h"
 #include "base/integer.h"
-
 #include "hal.h"
+#include "os/time.h"
 
 namespace Fructose {
 
@@ -26,14 +25,12 @@ constexpr _TimeRepr TimeFromTicks(systime_t ticks) {
 class ChibiOsDuration : public Duration {
  public:
   // using Duration::Duration; would still have protected access.
-  constexpr explicit ChibiOsDuration(_TimeRepr time)
-      : Duration(time) {
-  }
+  constexpr explicit ChibiOsDuration(_TimeRepr time) : Duration(time) {}
   using Duration::time_;
 };
 
-constexpr systime_t TicksFromDuration(const Duration &duration) {
-  return TicksFromTime(static_cast<const ChibiOsDuration &>(duration).time_);
+constexpr systime_t TicksFromDuration(const Duration& duration) {
+  return TicksFromTime(static_cast<const ChibiOsDuration&>(duration).time_);
 }
 constexpr Duration DurationFromTicks(systime_t ticks) {
   return ChibiOsDuration(TimeFromTicks(ticks));

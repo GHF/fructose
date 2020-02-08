@@ -7,7 +7,6 @@
 #include "os/chibios_time.h"
 
 #include "base/integer.h"
-
 #include "ch.h"
 #include "osal.h"
 
