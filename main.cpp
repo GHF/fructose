@@ -39,18 +39,15 @@ static constexpr SPIConfig kMpuSpiConfig = {
         // APB1/prescaler = 84 MHz / 128 = 656.25 kHz.
     /*cr1=*/SPI_CR1_BR_2 | SPI_CR1_BR_1,
     /*cr2=*/0};
-static I2CDriver* const kMcpI2c = &I2CD2;
-static constexpr I2CConfig kMcpI2cConfig = {OPMODE_I2C, 400000,
-                                            FAST_DUTY_CYCLE_2};
 static ICUDriver* const kPpmIcu = &ICUD8;
 static const GpioLine kLedStatus = LINE_LED_STAT;
 static const GpioLine kLedWarning = LINE_LED_WARN;
 static PWMDriver* const kRcOutPwm = &PWMD3;
-static constexpr pwmchannel_t kClampOutChannel = 3;
-static constexpr pwmchannel_t kLiftOutChannel = 2;
+static constexpr pwmchannel_t kLeftOutChannel = 2;
+static constexpr pwmchannel_t kRightOutChannel = 3;
 static constexpr PWMConfig kRcOutPwmConfig = {
     1000000,
-    15000,
+    3000,
     nullptr,
     {{PWM_OUTPUT_DISABLED, nullptr},
      {PWM_OUTPUT_DISABLED, nullptr},
@@ -61,10 +58,6 @@ static constexpr PWMConfig kRcOutPwmConfig = {
     0,
 #endif  // STM32_PWM_USE_ADVANCED
     0};
-static const GpioLine kMotorEnGpio = LINE_SERVO_OUT_3;
-static const GpioLine kDirLeftGpio = LINE_SERVO_OUT_4;
-static const GpioLine kDirRightGpio = LINE_INPUT_PIN_3;
-static const GpioLine kVddSourceGpio = LINE_INPUT_PIN_4;
 static const GpioLine kDebugUartTxGpio = LINE_SERVO_OUT_6;
 static const GpioLine kDebugUartRxGpio = LINE_SERVO_OUT_5;
 
@@ -132,40 +125,19 @@ int main(void) {
   Mpu6000 mpu(&mpu_spi_master, &mpu_spi_device);
   LogDebug("MPU-6000 detected: %s", mpu.Detect() ? "yes" : "no");
 
-  i2cStart(kMcpI2c, &kMcpI2cConfig);
-  ChibiOsI2cMaster mcp_i2c_master(kMcpI2c);
-  Mcp4725 dac_0(&mcp_i2c_master, Mcp4725::kAddressA0Clear);
-  Mcp4725 dac_1(&mcp_i2c_master, Mcp4725::kAddressA0Set);
-
   PpmInput ppm_input(kPpmIcu);
   ppm_input.Start();
 
   pwmStart(kRcOutPwm, &kRcOutPwmConfig);
 
-  // Override board settings because they're set for timer PWM output.
-  const GpioLine out_gpio_overrides[] = {kMotorEnGpio, kDirLeftGpio,
-                                         kDirRightGpio, kVddSourceGpio};
-  for (const GpioLine line : out_gpio_overrides) {
-    Gpio::Clear(line);
-    Gpio::SetMode(line, PAL_STM32_MODE_OUTPUT | PAL_STM32_OTYPE_PUSHPULL |
-                            PAL_STM32_OSPEED_HIGHEST | PAL_STM32_PUPDR_PULLUP);
-  }
-  Gpio::Set(kVddSourceGpio);
-
   static const SyrupConfig syrup_config = {
-      &dac_0,
-      &dac_1,
-      kMotorEnGpio,
-      kDirLeftGpio,
-      kDirRightGpio,
-      &mpu,
-      &ppm_input,
-      kLedStatus,
-      kLedWarning,
-      kRcOutPwm,
-      kClampOutChannel,
-      kLiftOutChannel,
-      Duration::Microseconds(1500),
+      /*imu=*/&mpu,
+      /*ppm_input=*/&ppm_input,
+      /*led_stat_gpio=*/kLedStatus,
+      /*led_warn_gpio=*/kLedWarning,
+      /*pwm_driver=*/kRcOutPwm,
+      /*left_output_channel=*/kLeftOutChannel,
+      /*right_output_channel=*/kRightOutChannel,
   };
   Syrup syrup(&syrup_config);
   chThdCreateStatic(g_blink_wa, sizeof(g_blink_wa), LOWPRIO, Blink, &syrup);

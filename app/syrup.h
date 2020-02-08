@@ -16,19 +16,13 @@
 #include "hal.h"
 
 struct SyrupConfig {
-  Fructose::Mcp4725* motor_left;
-  Fructose::Mcp4725* motor_right;
-  Fructose::GpioLine motors_enable_gpio;
-  Fructose::GpioLine dir_left_gpio;
-  Fructose::GpioLine dir_right_gpio;
   Fructose::Mpu6000* imu;
   PpmInputInterface* ppm_input;
   Fructose::GpioLine led_stat_gpio;
   Fructose::GpioLine led_warn_gpio;
   PWMDriver* pwm_driver;
-  pwmchannel_t clamp_output_channel;
-  pwmchannel_t lift_output_channel;
-  Fructose::Duration motor_write_timeout;
+  pwmchannel_t left_output_channel;
+  pwmchannel_t right_output_channel;
 };
 
 class Syrup : public PpmListener {
@@ -41,7 +35,7 @@ class Syrup : public PpmListener {
     kFlipChannel,
     kCommandChannels
   };
-  enum MotorChannel { kLeft, kRight, kMotorChannels };
+  enum class MotorChannel { kLeft, kRight };
 
   Syrup(const SyrupConfig* config);
   void Start();
@@ -53,14 +47,11 @@ class Syrup : public PpmListener {
   static constexpr int kGyroLoopTimeMs = 10;
   static constexpr float kGyroRate = 1000.0 / kGyroLoopTimeMs;
 
-  bool WriteMotor(MotorChannel motor_channel,
-                  float command,
-                  Fructose::Duration timeout);
+  void WriteMotor(MotorChannel motor_channel, float command);
+  void DisableMotors();
   void HandleCommandsFromIsr(PpmInputInterface*) override;
 
   const SyrupConfig* const config_;
-  Fructose::Mcp4725* const dac_motors_[kMotorChannels];
-  const Fructose::GpioLine dir_gpios_[kMotorChannels];
   thread_t* const thread_main_;
   bool drive_enabled_;
   mutex_t commands_mutex_;

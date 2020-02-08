@@ -29,8 +29,6 @@ constexpr float CommandFromRaw(int command_raw) {
 
 Syrup::Syrup(const SyrupConfig* config)
     : config_(config),
-      dac_motors_{config->motor_left, config->motor_right},
-      dir_gpios_{config->dir_left_gpio, config->dir_right_gpio},
       thread_main_(chThdGetSelfX()),
       drive_enabled_(false),
       commands_mutex_(_MUTEX_DATA(commands_mutex_)),
@@ -41,11 +39,11 @@ void Syrup::RunLed() {
   TimePoint time_point = TimePoint::Now();
   while (true) {
     Gpio::Set(config_->led_stat_gpio);
-    time_point = time_point.After(Duration::Milliseconds(100));
+    time_point = time_point.After(Duration::Milliseconds(490));
     time_point.SleepUntil();
     if (drive_enabled_) {
       Gpio::Clear(config_->led_stat_gpio);
-      time_point = time_point.After(Duration::Milliseconds(200));
+      time_point = time_point.After(Duration::Milliseconds(10));
       time_point.SleepUntil();
     }
   }
@@ -56,7 +54,7 @@ void Syrup::RunMain() {
 
   while (true) {
     // Wait for next PPM pulse train.
-    const eventmask_t events = chEvtWaitAnyTimeout(1U, TIME_MS2I(1000));
+    const eventmask_t events = chEvtWaitAnyTimeout(1U, TIME_MS2I(200));
     if (events != 0) {
       uint16_t commands[kCommandChannels] = {};
       const int num_channels =
@@ -71,16 +69,10 @@ void Syrup::RunMain() {
       drive_enabled_ = true;
       chMtxUnlock(&commands_mutex_);
 
-      Gpio::Set(config_->motors_enable_gpio);  // TODO remove
-      pwmEnableChannel(config_->pwm_driver, config_->clamp_output_channel,
-                       commands_[kClampChannel]);
-      pwmEnableChannel(config_->pwm_driver, config_->lift_output_channel,
-                       commands_[kLiftChannel]);
+      drive_enabled_ = true;
     } else {
-      Gpio::Clear(config_->motors_enable_gpio);
       drive_enabled_ = false;
-      pwmDisableChannel(config_->pwm_driver, config_->clamp_output_channel);
-      pwmDisableChannel(config_->pwm_driver, config_->lift_output_channel);
+      DisableMotors();
       LogDebug("timed out waiting for PPM input");
     }
   }
@@ -96,16 +88,16 @@ void Syrup::RunGyro() {
     const bool enabled = drive_enabled_;
     const int yaw_command = commands_[kSteerChannel];
     const int throttle_command = commands_[kThrottleChannel];
-    const bool correction_reversed = commands_[kFlipChannel];
+    const bool correction_reversed = commands_[kFlipChannel] >= 1500;
     chMtxUnlock(&commands_mutex_);
 
     if (enabled) {
       const float yaw = CommandFromRaw(yaw_command);
       const float throttle = CommandFromRaw(throttle_command);
-      WriteMotor(kLeft, -yaw - throttle, config_->motor_write_timeout);
-      WriteMotor(kRight, -yaw + throttle, config_->motor_write_timeout);
+      WriteMotor(MotorChannel::kLeft, yaw + throttle);
+      WriteMotor(MotorChannel::kRight, yaw - throttle);
     } else {
-      Gpio::Clear(config_->motors_enable_gpio);
+      DisableMotors();
     }
 
     time_point = time_point.After(loop_time);
@@ -115,11 +107,7 @@ void Syrup::RunGyro() {
 
 void Syrup::Start() {
   using namespace Fructose;
-
-  Gpio::Clear(config_->motors_enable_gpio);
-  const Duration timeout = Duration::Milliseconds(10);
-  WriteMotor(kLeft, 0.f, timeout);
-  WriteMotor(kRight, 0.f, timeout);
+  DisableMotors();
 
   config_->imu->ResetDevice();
   config_->imu->SetupDevice(
@@ -132,17 +120,19 @@ void Syrup::Start() {
   Gpio::Set(config_->led_warn_gpio);
 }
 
-bool Syrup::WriteMotor(MotorChannel motor_channel,
-                       float command,
-                       Fructose::Duration timeout) {
-  const float abs_command = ::fabsf(command);
-  const bool direction = std::signbit(command);
-  const bool status = dac_motors_[motor_channel]->Write(abs_command, timeout);
-  Fructose::Gpio::Write(dir_gpios_[motor_channel], direction);
-  if (!status) {
-    LogDebug("failed writing DAC %d", motor_channel);
+void Syrup::WriteMotor(MotorChannel motor_channel, float command) {
+  command = Fructose::Clamp(command, -1.f, 1.f);
+  const pwmcnt_t width = static_cast<pwmcnt_t>(command * 500.f) + 1500;
+  if (motor_channel == MotorChannel::kLeft) {
+    pwmEnableChannel(config_->pwm_driver, config_->left_output_channel, width);
+  } else {
+    pwmEnableChannel(config_->pwm_driver, config_->right_output_channel, width);
   }
-  return status;
+}
+
+void Syrup::DisableMotors() {
+  pwmDisableChannel(config_->pwm_driver, config_->left_output_channel);
+  pwmDisableChannel(config_->pwm_driver, config_->right_output_channel);
 }
 
 void Syrup::HandleCommandsFromIsr(PpmInputInterface*) {
