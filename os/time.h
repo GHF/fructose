@@ -11,10 +11,12 @@
 
 #pragma once
 
-#include "base/integer.h"
 #include <algorithm>
-#include <limits>
 #include <cstdint>
+#include <limits>
+#include <ratio>
+
+#include "base/integer.h"
 
 namespace Fructose {
 
@@ -37,9 +39,7 @@ class TimePoint {
   static TimePoint Now();
 
  private:
-  explicit constexpr TimePoint(_TimeRepr time)
-      : time_(time) {
-  }
+  explicit constexpr TimePoint(_TimeRepr time) : time_(time) {}
 
   _TimeRepr time_;
   friend class Duration;
@@ -56,8 +56,7 @@ class Duration {
   // Create from a difference of two points time. end must be greater than
   // start to avoid overflow.
   constexpr Duration(TimePoint start, TimePoint end)
-      : time_(end.time_ - start.time_) {
-  }
+      : time_(end.time_ - start.time_) {}
 
   // Ask the system to suspend the current thread for this duration.
   void Sleep();
@@ -86,13 +85,15 @@ class Duration {
 
   // Construction functions.
   static constexpr Duration Microseconds(MicrosecondsType microseconds) {
-    const _TimeRepr time = std::min(kMaximum,
-        ScaleRoundUp(microseconds, kTimeResolution, 1000000UL));
+    const _TimeRepr time = std::min(
+        kMaximum,
+        ScaleRoundUp<std::ratio<kTimeResolution, 1000000UL>>(microseconds));
     return Duration(time);
   }
   static constexpr Duration Milliseconds(MillisecondsType milliseconds) {
-    const _TimeRepr time = std::min(kMaximum,
-        ScaleRoundUp(milliseconds, kTimeResolution, 1000UL));
+    const _TimeRepr time = std::min(
+        kMaximum,
+        ScaleRoundUp<std::ratio<kTimeResolution, 1000UL>>(milliseconds));
     return Duration(time);
   }
   static constexpr Duration Seconds(SecondsType seconds) {
@@ -101,25 +102,16 @@ class Duration {
   }
 
   // Aliases for durations.
-  static constexpr Duration Immediate() {
-    return Duration(kImmediate);
-  }
-  static constexpr Duration Infinite() {
-    return Duration(kInfinite);
-  }
-  static constexpr Duration Max() {
-    return Duration(kMaximum);
-  }
+  static constexpr Duration Immediate() { return Duration(kImmediate); }
+  static constexpr Duration Infinite() { return Duration(kInfinite); }
+  static constexpr Duration Max() { return Duration(kMaximum); }
 
  protected:
   static constexpr _TimeRepr kImmediate = 0;
-  static constexpr _TimeRepr kInfinite =
-      std::numeric_limits<_TimeRepr>::max();
+  static constexpr _TimeRepr kInfinite = std::numeric_limits<_TimeRepr>::max();
   static constexpr _TimeRepr kMaximum = kInfinite - 1;
 
-  explicit constexpr Duration(_TimeRepr time)
-      : time_(time) {
-  }
+  explicit constexpr Duration(_TimeRepr time) : time_(time) {}
 
   _TimeRepr time_;
   friend class TimePoint;
@@ -129,4 +121,4 @@ constexpr TimePoint TimePoint::After(Duration duration) const {
   return TimePoint(time_ + duration.time_);
 }
 
-}
+}  // namespace Fructose
