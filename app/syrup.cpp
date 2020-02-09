@@ -34,7 +34,7 @@ Syrup::Syrup(const SyrupConfig* config)
       commands_mutex_(_MUTEX_DATA(commands_mutex_)),
       commands_() {}
 
-void Syrup::RunLed() {
+void Syrup::RunStatusLed() {
   using namespace Fructose;
   TimePoint time_point = TimePoint::Now();
   while (true) {

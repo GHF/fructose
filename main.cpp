@@ -61,21 +61,21 @@ static constexpr PWMConfig kRcOutPwmConfig = {
 static const GpioLine kDebugUartTxGpio = LINE_SERVO_OUT_6;
 static const GpioLine kDebugUartRxGpio = LINE_SERVO_OUT_5;
 
-static THD_WORKING_AREA(g_blink_wa, 128);
-static THD_FUNCTION(Blink, arg) {
+static THD_WORKING_AREA(g_status_led_working_area, 128);
+static THD_FUNCTION(StatusLed, arg) {
   chRegSetThreadName(__func__);
   Syrup* const syrup = static_cast<Syrup*>(arg);
-  syrup->RunLed();
+  syrup->RunStatusLed();
 }
 
-static THD_WORKING_AREA(g_gyro_wa, 1024);
+static THD_WORKING_AREA(g_gyro_working_area, 1024);
 static THD_FUNCTION(Gyro, arg) {
   chRegSetThreadName(__func__);
   Syrup* const syrup = static_cast<Syrup*>(arg);
   syrup->RunGyro();
 }
 
-static THD_WORKING_AREA(g_reset_watch_wa, 128);
+static THD_WORKING_AREA(g_reset_watch_working_area, 128);
 // Resets the system if two ^C characters are received in quick succession.
 // Also performs reception echo.
 static THD_FUNCTION(WatchForReset, arg) {
@@ -116,8 +116,9 @@ int main(void) {
   puts("\r");
   LogInfo("Board \"%s\" (%s built on %s)", BOARD_NAME, g_build_version,
           g_build_time);
-  chThdCreateStatic(g_reset_watch_wa, sizeof(g_reset_watch_wa), HIGHPRIO,
-                    WatchForReset, kDebugSerial);
+  chThdCreateStatic(g_reset_watch_working_area,
+                    sizeof(g_reset_watch_working_area), HIGHPRIO, WatchForReset,
+                    kDebugSerial);
 
   spiStart(kMpuSpi, &kMpuSpiConfig);
   ChibiOsSpiMaster mpu_spi_master(kMpuSpi);
@@ -140,9 +141,12 @@ int main(void) {
       /*right_output_channel=*/kRightOutChannel,
   };
   Syrup syrup(&syrup_config);
-  chThdCreateStatic(g_blink_wa, sizeof(g_blink_wa), LOWPRIO, Blink, &syrup);
+  chThdCreateStatic(g_status_led_working_area,
+                    sizeof(g_status_led_working_area), LOWPRIO, StatusLed,
+                    &syrup);
   syrup.Start();
-  chThdCreateStatic(g_gyro_wa, sizeof(g_gyro_wa), HIGHPRIO - 1, Gyro, &syrup);
+  chThdCreateStatic(g_gyro_working_area, sizeof(g_gyro_working_area),
+                    HIGHPRIO - 1, Gyro, &syrup);
   syrup.RunMain();
 
   return 0;

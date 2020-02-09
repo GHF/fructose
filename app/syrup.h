@@ -39,7 +39,7 @@ class Syrup : public PpmListener {
 
   Syrup(const SyrupConfig* config);
   void Start();
-  [[noreturn]] void RunLed();
+  [[noreturn]] void RunStatusLed();
   [[noreturn]] void RunMain();
   [[noreturn]] void RunGyro();
 
