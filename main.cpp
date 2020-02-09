@@ -46,18 +46,19 @@ static PWMDriver* const kRcOutPwm = &PWMD3;
 static constexpr pwmchannel_t kLeftOutChannel = 2;
 static constexpr pwmchannel_t kRightOutChannel = 3;
 static constexpr PWMConfig kRcOutPwmConfig = {
-    1000000,
-    3000,
-    nullptr,
-    {{PWM_OUTPUT_DISABLED, nullptr},
-     {PWM_OUTPUT_DISABLED, nullptr},
-     {PWM_OUTPUT_ACTIVE_HIGH, nullptr},
-     {PWM_OUTPUT_ACTIVE_HIGH, nullptr}},
-    0,
+    /*frequency=*/1000000,
+    /*period=*/3000,
+    /*callback=*/nullptr,
+    /*channels=*/
+    {{/*mode=*/PWM_OUTPUT_DISABLED, /*callback=*/nullptr},
+     {/*mode=*/PWM_OUTPUT_DISABLED, /*callback=*/nullptr},
+     {/*mode=*/PWM_OUTPUT_ACTIVE_HIGH, /*callback=*/nullptr},
+     {/*mode=*/PWM_OUTPUT_ACTIVE_HIGH, /*callback=*/nullptr}},
+    /*cr2=*/0,
 #if STM32_PWM_USE_ADVANCED
-    0,
+    /*bdtr=*/0,
 #endif  // STM32_PWM_USE_ADVANCED
-    0};
+    /*dier=*/0};
 static const GpioLine kDebugUartTxGpio = LINE_SERVO_OUT_6;
 static const GpioLine kDebugUartRxGpio = LINE_SERVO_OUT_5;
 
