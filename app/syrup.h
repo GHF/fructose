@@ -46,6 +46,7 @@ class Syrup : public PpmListener {
  private:
   static constexpr int kGyroLoopTimeMs = 10;
   static constexpr float kGyroRate = 1000.0 / kGyroLoopTimeMs;
+  static constexpr eventmask_t kMainCommandEvent = 0b1U;
 
   void WriteMotor(MotorChannel motor_channel, float command);
   void DisableMotors();

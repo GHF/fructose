@@ -54,8 +54,7 @@ void Syrup::RunMain() {
 
   while (true) {
     // Wait for next PPM pulse train.
-    const eventmask_t events = chEvtWaitAnyTimeout(1U, TIME_MS2I(200));
-    if (events != 0) {
+    if (chEvtWaitOneTimeout(kMainCommandEvent, TIME_MS2I(200)) != 0) {
       uint16_t commands[kCommandChannels] = {};
       const int num_channels =
           config_->ppm_input->ReadCommands(ArraySize(commands), commands);
@@ -71,6 +70,7 @@ void Syrup::RunMain() {
 
       drive_enabled_ = true;
     } else {
+      // Timed out.
       drive_enabled_ = false;
       DisableMotors();
       LogDebug("timed out waiting for PPM input");
@@ -138,6 +138,6 @@ void Syrup::DisableMotors() {
 void Syrup::HandleCommandsFromIsr(PpmInputInterface*) {
   // Wake input handling loop.
   osalSysLockFromISR();
-  chEvtSignalI(thread_main_, 1U);
+  chEvtSignalI(thread_main_, kMainCommandEvent);
   osalSysUnlockFromISR();
 }
