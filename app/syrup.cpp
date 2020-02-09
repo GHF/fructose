@@ -65,7 +65,7 @@ void Syrup::RunMain() {
 
   while (true) {
     // Wait for next PPM pulse train.
-    if (chEvtWaitOneTimeout(kMainCommandEvent, TIME_MS2I(200)) != 0) {
+    if (chEvtWaitOneTimeout(kMainCommandEvent, TIME_MS2I(500)) != 0) {
       uint16_t commands[kCommandChannels] = {};
       const int num_channels =
           config_->ppm_input->ReadCommands(ArraySize(commands), commands);
