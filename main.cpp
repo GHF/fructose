@@ -69,6 +69,13 @@ static THD_FUNCTION(StatusLed, arg) {
   syrup->RunStatusLed();
 }
 
+static THD_WORKING_AREA(g_warn_led_working_area, 128);
+static THD_FUNCTION(WarnLed, arg) {
+  chRegSetThreadName(__func__);
+  Syrup* const syrup = static_cast<Syrup*>(arg);
+  syrup->RunWarnLed();
+}
+
 static THD_WORKING_AREA(g_gyro_working_area, 1024);
 static THD_FUNCTION(Gyro, arg) {
   chRegSetThreadName(__func__);
@@ -145,6 +152,9 @@ int main(void) {
   chThdCreateStatic(g_status_led_working_area,
                     sizeof(g_status_led_working_area), LOWPRIO, StatusLed,
                     &syrup);
+  syrup.set_warn_thread(chThdCreateStatic(g_warn_led_working_area,
+                                          sizeof(g_warn_led_working_area),
+                                          LOWPRIO, WarnLed, &syrup));
   syrup.Start();
   chThdCreateStatic(g_gyro_working_area, sizeof(g_gyro_working_area),
                     HIGHPRIO - 1, Gyro, &syrup);

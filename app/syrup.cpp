@@ -32,7 +32,8 @@ Syrup::Syrup(const SyrupConfig* config)
       thread_main_(chThdGetSelfX()),
       drive_enabled_(false),
       commands_mutex_(_MUTEX_DATA(commands_mutex_)),
-      commands_() {}
+      commands_(),
+      warn_thread_(nullptr) {}
 
 void Syrup::RunStatusLed() {
   using namespace Fructose;
@@ -46,6 +47,16 @@ void Syrup::RunStatusLed() {
       time_point = time_point.After(Duration::Milliseconds(10));
       time_point.SleepUntil();
     }
+  }
+}
+
+void Syrup::RunWarnLed() {
+  using namespace Fructose;
+  while (true) {
+    Gpio::Set(config_->led_warn_gpio);
+    chEvtWaitOne(kWarnErrorEvent);
+    Gpio::Clear(config_->led_warn_gpio);
+    Duration::Milliseconds(100).Sleep();
   }
 }
 
@@ -73,6 +84,9 @@ void Syrup::RunMain() {
       // Timed out.
       drive_enabled_ = false;
       DisableMotors();
+      if (warn_thread_ != nullptr) {
+        chEvtSignal(warn_thread_, kWarnErrorEvent);
+      }
       LogDebug("timed out waiting for PPM input");
     }
   }

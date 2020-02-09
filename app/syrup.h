@@ -38,8 +38,12 @@ class Syrup : public PpmListener {
   enum class MotorChannel { kLeft, kRight };
 
   Syrup(const SyrupConfig* config);
+
+  void set_warn_thread(thread_t* warn_thread) { warn_thread_ = warn_thread; }
+
   void Start();
   [[noreturn]] void RunStatusLed();
+  [[noreturn]] void RunWarnLed();
   [[noreturn]] void RunMain();
   [[noreturn]] void RunGyro();
 
@@ -47,6 +51,7 @@ class Syrup : public PpmListener {
   static constexpr int kGyroLoopTimeMs = 10;
   static constexpr float kGyroRate = 1000.0 / kGyroLoopTimeMs;
   static constexpr eventmask_t kMainCommandEvent = 0b1U;
+  static constexpr eventmask_t kWarnErrorEvent = 0b1U;
 
   void WriteMotor(MotorChannel motor_channel, float command);
   void DisableMotors();
@@ -57,4 +62,5 @@ class Syrup : public PpmListener {
   bool drive_enabled_;
   mutex_t commands_mutex_;
   uint16_t commands_[kCommandChannels];
+  thread_t* warn_thread_;
 };
