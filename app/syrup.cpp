@@ -18,7 +18,7 @@
 
 namespace {
 
-Fructose::RangeMap kCommandMapper(1000, 2000, 20, -1000, 1000);
+constexpr Fructose::RangeMap kCommandMapper(1000, 2000, 20, -1000, 1000);
 
 constexpr float CommandFromRaw(int command_raw) {
   const int command = kCommandMapper.Map(command_raw);
@@ -66,20 +66,22 @@ void Syrup::RunMain() {
   while (true) {
     // Wait for next PPM pulse train.
     if (chEvtWaitOneTimeout(kMainCommandEvent, TIME_MS2I(500)) != 0) {
-      uint16_t commands[kCommandChannels] = {};
+      decltype(commands_) commands = {};
       const int num_channels =
-          config_->ppm_input->ReadCommands(ArraySize(commands), commands);
-      if (num_channels < kCommandChannels) {
+          config_->ppm_input->ReadCommands(commands.size(), commands.data());
+      if (num_channels < int{commands.size()}) {
         LogWarning("Read PPM train with only %d channels.", num_channels);
         continue;
       }
 
       chMtxLock(&commands_mutex_);
-      std::copy(commands, commands + kCommandChannels, commands_);
+      std::copy(commands.cbegin(), commands.cend(), commands_.begin());
       drive_enabled_ = true;
       chMtxUnlock(&commands_mutex_);
 
-      drive_enabled_ = true;
+      const auto weapon_command = command_for_channel(CommandChannel::kWeapon);
+      WriteMotor(MotorChannel::kWeaponOneshot42, weapon_command);
+      WriteMotor(MotorChannel::kWeapon, weapon_command);
     } else {
       // Timed out.
       drive_enabled_ = false;
@@ -100,16 +102,17 @@ void Syrup::RunGyro() {
   while (true) {
     chMtxLock(&commands_mutex_);
     const bool enabled = drive_enabled_;
-    const int yaw_command = commands_[kSteerChannel];
-    const int throttle_command = commands_[kThrottleChannel];
-    const bool correction_reversed = commands_[kFlipChannel] >= 1500;
+    const int yaw_command = command_for_channel(CommandChannel::kYaw);
+    const int surge_command = command_for_channel(CommandChannel::kSurge);
+    const bool correction_reversed =
+        command_for_channel(CommandChannel::kFlip) >= 1500;
     chMtxUnlock(&commands_mutex_);
 
     if (enabled) {
       const float yaw = CommandFromRaw(yaw_command);
-      const float throttle = CommandFromRaw(throttle_command);
-      WriteMotor(MotorChannel::kLeft, yaw + throttle);
-      WriteMotor(MotorChannel::kRight, yaw - throttle);
+      const float surge = CommandFromRaw(surge_command);
+      WriteMotor(MotorChannel::kLeft, command_from_normalized(yaw + surge));
+      WriteMotor(MotorChannel::kRight, command_from_normalized(yaw - surge));
     } else {
       DisableMotors();
     }
@@ -134,19 +137,29 @@ void Syrup::Start() {
   Gpio::Set(config_->led_warn_gpio);
 }
 
-void Syrup::WriteMotor(MotorChannel motor_channel, float command) {
-  command = Fructose::Clamp(command, -1.f, 1.f);
-  const pwmcnt_t width = static_cast<pwmcnt_t>(command * 500.f) + 1500;
-  if (motor_channel == MotorChannel::kLeft) {
-    pwmEnableChannel(config_->pwm_driver, config_->left_output_channel, width);
+void Syrup::WriteMotor(MotorChannel motor_channel, uint32_t pwm_command) {
+  const ServoOutput servo_out = servo_output_for_channel(motor_channel);
+  PWMDriver* const pwm_driver = pwm_for_servo_output(servo_out);
+  // Regular servo output.
+  if (pwm_driver == config_->pwm_1_2_driver) {
+    pwm_command =
+        Fructose::Scale<std::ratio<STM32_TIMCLK1, 24'000'000>>(pwm_command);
   } else {
-    pwmEnableChannel(config_->pwm_driver, config_->right_output_channel, width);
+    pwm_command =
+        Fructose::Scale<std::ratio<STM32_TIMCLK1 / 4, 1'000'000>>(pwm_command);
   }
+  pwmEnableChannel(pwm_driver, channel_for_servo_output(servo_out),
+                   pwm_command);
 }
 
 void Syrup::DisableMotors() {
-  pwmDisableChannel(config_->pwm_driver, config_->left_output_channel);
-  pwmDisableChannel(config_->pwm_driver, config_->right_output_channel);
+  constexpr ServoOutput servo_outputs[] = {ServoOutput::k1, ServoOutput::k2,
+                                           ServoOutput::k3, ServoOutput::k4,
+                                           ServoOutput::k5, ServoOutput::k6};
+  for (const auto servo_out : servo_outputs) {
+    pwmDisableChannel(pwm_for_servo_output(servo_out),
+                      channel_for_servo_output(servo_out));
+  }
 }
 
 void Syrup::HandleCommandsFromIsr(PpmInputInterface*) {

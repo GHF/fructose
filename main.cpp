@@ -42,12 +42,25 @@ static constexpr SPIConfig kMpuSpiConfig = {
 static ICUDriver* const kPpmIcu = &ICUD8;
 static const GpioLine kLedStatus = LINE_LED_STAT;
 static const GpioLine kLedWarning = LINE_LED_WARN;
-static PWMDriver* const kRcOutPwm = &PWMD3;
-static constexpr pwmchannel_t kLeftOutChannel = 2;
-static constexpr pwmchannel_t kRightOutChannel = 3;
-static constexpr PWMConfig kRcOutPwmConfig = {
-    /*frequency=*/1000000,
-    /*period=*/3000,
+static PWMDriver* const kRcOut3456Pwm = &PWMD2;
+static constexpr PWMConfig kRcOut3456PwmConfig = {
+    /*frequency=*/STM32_TIMCLK1 / 4,
+    /*period=*/Fructose::Scale<std::ratio<STM32_TIMCLK1 / 4, 1'000'000>>(3000),
+    /*callback=*/nullptr,
+    /*channels=*/
+    {{/*mode=*/PWM_OUTPUT_ACTIVE_HIGH, /*callback=*/nullptr},
+     {/*mode=*/PWM_OUTPUT_ACTIVE_HIGH, /*callback=*/nullptr},
+     {/*mode=*/PWM_OUTPUT_ACTIVE_HIGH, /*callback=*/nullptr},
+     {/*mode=*/PWM_OUTPUT_ACTIVE_HIGH, /*callback=*/nullptr}},
+    /*cr2=*/0,
+#if STM32_PWM_USE_ADVANCED
+    /*bdtr=*/0,
+#endif  // STM32_PWM_USE_ADVANCED
+    /*dier=*/0};
+static PWMDriver* const kRcOut12Pwm = &PWMD3;
+static constexpr PWMConfig kRcOut12PwmConfig = {
+    /*frequency=*/STM32_TIMCLK1,
+    /*period=*/Fructose::Scale<std::ratio<STM32_TIMCLK1, 24'000'000>>(3000),
     /*callback=*/nullptr,
     /*channels=*/
     {{/*mode=*/PWM_OUTPUT_DISABLED, /*callback=*/nullptr},
@@ -118,8 +131,9 @@ int main(void) {
   chSysInit();
 
   Gpio::SetMode(kDebugUartTxGpio, PAL_MODE_ALTERNATE(8));
-  Gpio::SetMode(kDebugUartRxGpio,
-                PAL_MODE_ALTERNATE(8) | PAL_STM32_PUPDR_PULLUP);
+  // Uncomment to enable debug UART rx input instead of servo output 5.
+  //  Gpio::SetMode(kDebugUartRxGpio,
+  //                PAL_MODE_ALTERNATE(8) | PAL_STM32_PUPDR_PULLUP);
   sdStart(kDebugSerial, nullptr);
   puts("\r");
   LogInfo("Board \"%s\" (%s built on %s)", BOARD_NAME, g_build_version,
@@ -137,16 +151,20 @@ int main(void) {
   PpmInput ppm_input(kPpmIcu);
   ppm_input.Start();
 
-  pwmStart(kRcOutPwm, &kRcOutPwmConfig);
+  pwmStart(kRcOut12Pwm, &kRcOut12PwmConfig);
+  LogDebug("Started RC PWM 1,2 at %lu Hz counting to %lu",
+           kRcOut12PwmConfig.frequency, kRcOut12PwmConfig.period);
+  pwmStart(kRcOut3456Pwm, &kRcOut3456PwmConfig);
+  LogDebug("Started RC PWM 3,4,5,6 at %lu Hz counting to %lu",
+           kRcOut3456PwmConfig.frequency, kRcOut3456PwmConfig.period);
 
   static const SyrupConfig syrup_config = {
       /*imu=*/&mpu,
       /*ppm_input=*/&ppm_input,
       /*led_stat_gpio=*/kLedStatus,
       /*led_warn_gpio=*/kLedWarning,
-      /*pwm_driver=*/kRcOutPwm,
-      /*left_output_channel=*/kLeftOutChannel,
-      /*right_output_channel=*/kRightOutChannel,
+      /*pwm_1_2_driver=*/kRcOut12Pwm,
+      /*pwm_3_4_5_6_driver=*/kRcOut3456Pwm,
   };
   Syrup syrup(&syrup_config);
   chThdCreateStatic(g_status_led_working_area,
