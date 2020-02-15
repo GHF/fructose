@@ -104,13 +104,13 @@ void Syrup::RunGyro() {
     const bool enabled = drive_enabled_;
     const int yaw_command = command_for_channel(CommandChannel::kYaw);
     const int surge_command = command_for_channel(CommandChannel::kSurge);
-    const bool correction_reversed =
-        command_for_channel(CommandChannel::kFlip) >= 1500;
+    const bool flipped = command_for_channel(CommandChannel::kFlip) >= 1500;
     chMtxUnlock(&commands_mutex_);
 
     if (enabled) {
       const float yaw = CommandFromRaw(yaw_command);
-      const float surge = CommandFromRaw(surge_command);
+      const float surge = flipped ? -CommandFromRaw(surge_command)
+                                  : CommandFromRaw(surge_command);
       WriteMotor(MotorChannel::kLeft, command_from_normalized(yaw + surge));
       WriteMotor(MotorChannel::kRight, command_from_normalized(yaw - surge));
     } else {
