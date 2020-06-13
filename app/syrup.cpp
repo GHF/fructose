@@ -100,6 +100,11 @@ void Syrup::RunGyro() {
   TimePoint time_point = TimePoint::Now();
   const Duration loop_time = Duration::Milliseconds(kGyroLoopTimeMs);
   while (true) {
+    float gyro_rates[3] = {};
+    config_->imu->Read(&gyro_rates, nullptr, nullptr);
+    const float& z_rate = gyro_rates[2];
+    constexpr float kZRange = 9.f;  // in rad/sec
+
     chMtxLock(&commands_mutex_);
     const bool enabled = drive_enabled_;
     const int yaw_command = command_for_channel(CommandChannel::kYaw);
@@ -111,8 +116,11 @@ void Syrup::RunGyro() {
       const float yaw = CommandFromRaw(yaw_command);
       const float surge = flipped ? -CommandFromRaw(surge_command)
                                   : CommandFromRaw(surge_command);
-      WriteMotor(MotorChannel::kLeft, command_from_normalized(yaw + surge));
-      WriteMotor(MotorChannel::kRight, command_from_normalized(yaw - surge));
+      const float error = z_rate - yaw * kZRange;
+      const float kP = 0.1f * (flipped ? -1.f : 1.f);
+      const float corrected_yaw = error * kP;
+      WriteMotor(MotorChannel::kLeft, command_from_normalized(corrected_yaw + surge));
+      WriteMotor(MotorChannel::kRight, command_from_normalized(corrected_yaw - surge));
     } else {
       DisableMotors();
     }
