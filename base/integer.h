@@ -174,11 +174,12 @@ constexpr T Nabs(T i) {
   // Check if signed right shift sign extends (i.e. arithmetic right shift).
   if constexpr (::Fructose::internal::has_arithmetic_shift_v<T>) {
     constexpr int num_bits = sizeof(T) * 8;
-    // Splat sign bit into all bit positions, then complement.
-    const T inverse_sign = ~(i >> (num_bits - 1));
-    // If i is positive (inverse_sign = -1), this will invert i and add 1.
-    // Otherwise (inverse_sign = 0) will be unchanged.
-    return (i ^ inverse_sign) - inverse_sign;
+    // Splat sign bit into all bit positions.
+    const T sign = i >> (num_bits - 1);
+    // If i is positive (sign = 0), i is unchanged by xor and subtracted from 0.
+    // Otherwise for a negative i (sign = -1), i is inverted and negated, which
+    // increments it, so this is cancelled out by adding sign
+    return sign - (i ^ sign);
   } else {
     return i <= 0 ? i : -i;
   }
