@@ -45,7 +45,7 @@ static const GpioLine kLedWarning = LINE_LED_WARN;
 static PWMDriver* const kRcOut3456Pwm = &PWMD2;
 static constexpr PWMConfig kRcOut3456PwmConfig = {
     /*frequency=*/STM32_TIMCLK1 / 4,
-    /*period=*/Fructose::Scale<std::ratio<STM32_TIMCLK1 / 4, 1'000'000>>(3000),
+    /*period=*/Fructose::Scale<std::ratio<STM32_TIMCLK1 / 4, 1'000'000>>(18000),
     /*callback=*/nullptr,
     /*channels=*/
     {{/*mode=*/PWM_OUTPUT_ACTIVE_HIGH, /*callback=*/nullptr},
@@ -60,7 +60,7 @@ static constexpr PWMConfig kRcOut3456PwmConfig = {
 static PWMDriver* const kRcOut12Pwm = &PWMD3;
 static constexpr PWMConfig kRcOut12PwmConfig = {
     /*frequency=*/STM32_TIMCLK1,
-    /*period=*/Fructose::Scale<std::ratio<STM32_TIMCLK1, 24'000'000>>(3000),
+    /*period=*/Fructose::Scale<std::ratio<STM32_TIMCLK1, 24'000'000>>(18000),
     /*callback=*/nullptr,
     /*channels=*/
     {{/*mode=*/PWM_OUTPUT_DISABLED, /*callback=*/nullptr},

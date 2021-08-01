@@ -119,8 +119,8 @@ void Syrup::RunGyro() {
       const float error = z_rate - yaw * kZRange;
       const float kP = 0.1f * (flipped ? -1.f : 1.f);
       const float corrected_yaw = error * kP;
-      WriteMotor(MotorChannel::kLeft, command_from_normalized(corrected_yaw + surge));
-      WriteMotor(MotorChannel::kRight, command_from_normalized(corrected_yaw - surge));
+      WriteMotor(MotorChannel::kLeft, command_from_normalized(surge));
+      WriteMotor(MotorChannel::kRight, command_from_normalized(corrected_yaw));
     } else {
       DisableMotors();
     }
