@@ -25,7 +25,7 @@ TEST_CASE("Can construct AssertData with FRU_ASSERT_DATA",
   const int kLineNumber = __LINE__ + 1;
   auto data = FRU_ASSERT_DATA("1 == 1");
   CHECK_THAT(data.condition, Equals("1 == 1"));
-  CHECK_THAT(data.file_name, Equals("../../base/assert_unittest.cc"));
+  CHECK_THAT(data.file_name, EndsWith("/assert_unittest.cc"));
   CHECK(kLineNumber == data.line_number);
 }
 
